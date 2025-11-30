@@ -1,0 +1,109 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '../stores/user'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('../views/Home.vue')
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/Login.vue')
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/Register.vue')
+    },
+    {
+      path: '/post/:id',
+      name: 'post-detail',
+      component: () => import('../views/PostDetail.vue'),
+      props: true
+    },
+    {
+      path: '/post/edit/:id?',
+      name: 'post-edit',
+      component: () => import('../views/PostEdit.vue'),
+      props: true,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin',
+      name: 'admin-layout',
+      component: () => import('../views/admin/Layout.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          redirect: '/admin/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'admin-dashboard',
+          component: () => import('../views/admin/Dashboard.vue')
+        },
+        {
+          path: 'posts',
+          name: 'admin-posts',
+          component: () => import('../views/admin/PostManagement.vue')
+        },
+        {
+          path: 'categories',
+          name: 'admin-categories',
+          component: () => import('../views/admin/CategoryManagement.vue')
+        },
+        {
+          path: 'tags',
+          name: 'admin-tags',
+          component: () => import('../views/admin/TagManagement.vue')
+        },
+        {
+          path: 'comments',
+          name: 'admin-comments',
+          component: () => import('../views/admin/CommentManagement.vue')
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('../views/admin/UserManagement.vue')
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('../views/admin/SystemSettings.vue')
+        }
+      ]
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFound.vue')
+    }
+  ]
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+  
+  // 检查是否需要登录
+  if (to.meta.requiresAuth && !userStore.token) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+    return
+  }
+  
+  // 检查是否需要管理员权限
+  if (to.meta.requiresAdmin && userStore.user?.role !== 'admin') {
+    next({ name: 'home' })
+    return
+  }
+  
+  next()
+})
+
+export default router

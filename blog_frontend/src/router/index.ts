@@ -39,10 +39,20 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/Profile.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/category/:id',
       name: 'category',
       component: () => import('../views/Category.vue'),
       props: true
+    },
+    {
+      path: '/tag',
+      redirect: '/'
     },
     {
       path: '/tag/:id',
@@ -106,21 +116,21 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
-  
+
   // 检查是否需要登录
   if (to.meta.requiresAuth && !userStore.token) {
     next({ name: 'login', query: { redirect: to.fullPath } })
     return
   }
-  
+
   // 检查是否需要管理员权限
   if (to.meta.requiresAdmin && userStore.userInfo?.role !== 'ADMIN') {
     next({ name: 'home' })
     return
   }
-  
+
   next()
 })
 

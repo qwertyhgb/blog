@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useCommentStore } from '@/stores/comment'
 import { useUserStore } from '@/stores/user'
-import { Calendar, View, User, Tag, Folder, Edit, Delete } from '@element-plus/icons-vue'
+import { Calendar, View, User, PriceTag, Folder, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
@@ -41,7 +41,7 @@ const commentRules = {
 
 // 初始化Markdown渲染器
 const md = new MarkdownIt({
-  highlight: function (str, lang) {
+  highlight: function (str: string, lang: string) {
     if (lang && hljs.getLanguage(lang)) {
       try {
         return hljs.highlight(str, { language: lang }).value
@@ -197,7 +197,7 @@ onMounted(() => {
             :key="tag.id"
             @click="goToTag(tag.id)"
           >
-            <el-icon><Tag /></el-icon>
+            <el-icon><PriceTag /></el-icon>
             {{ tag.name }}
           </span>
         </div>

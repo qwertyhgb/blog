@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCategoryStore } from '@/stores/category'
-import { Search, Menu, User, ArrowDown, Moon, Sunny, Edit } from '@element-plus/icons-vue'
+import { Search, ArrowDown, Moon, Sunny, Edit } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()

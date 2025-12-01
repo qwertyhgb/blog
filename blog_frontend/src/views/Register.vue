@@ -19,7 +19,7 @@ const registerForm = reactive({
   confirmPassword: ''
 })
 
-const checkPassword = (rule: any, value: string, callback: any) => {
+const checkPassword = (_rule: any, value: string, callback: any) => {
   if (value === '') {
     callback(new Error('请再次输入密码'))
   } else if (value !== registerForm.password) {

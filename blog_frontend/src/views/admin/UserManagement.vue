@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useUserStore } from '@/stores/user'
 import { Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-const userStore = useUserStore()
 
 const loading = ref(false)
 const dialogVisible = ref(false)

@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/post'
 import { Search, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
-const postStore = usePostStore()
 
 const loading = ref(false)
 const searchKeyword = ref('')

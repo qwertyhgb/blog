@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
@@ -52,24 +52,24 @@ api.interceptors.response.use(
   },
   async error => {
     const originalRequest = error.config
-    
+
     if (error.response) {
       // 401错误且不是刷新token的请求
       if (error.response.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
         const userStore = useUserStore()
         const refreshToken = localStorage.getItem('refreshToken')
-        
+
         // 如果有refreshToken，尝试刷新
         if (refreshToken) {
           if (!isRefreshing) {
             isRefreshing = true
             originalRequest._retry = true
-            
+
             try {
               await userStore.refreshToken()
               isRefreshing = false
               onTokenRefreshed(userStore.token || '')
-              
+
               // 重试原请求
               originalRequest.headers.Authorization = `Bearer ${userStore.token}`
               return api(originalRequest)
@@ -111,7 +111,7 @@ api.interceptors.response.use(
     } else {
       ElMessage.error('网络错误，请检查网络连接')
     }
-    
+
     return Promise.reject(error)
   }
 )

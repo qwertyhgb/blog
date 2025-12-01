@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/blog_backend/src/main/resources/db/init.sql" value="ba9bfd38-a9dd-4340-b804-20654e4b617e" />
+    <file url="file://$PROJECT_DIR$/blog_backend/src/main/resources/db/init.sql" value="285b97f4-7450-468f-84ea-621cdd78907a" />
   </component>
 </project>

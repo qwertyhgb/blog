@@ -2,15 +2,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
-import { useCategoryStore } from '@/stores/category'
-import { useTagStore } from '@/stores/tag'
-import { Calendar, View, User, Tag, Folder } from '@element-plus/icons-vue'
+import { useCategoryStore, useTagStore } from '@/stores/category'
+import { Calendar, View, User, PriceTag, Folder, Edit } from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const postStore = usePostStore()
 const categoryStore = useCategoryStore()
 const tagStore = useTagStore()
+const userStore = useUserStore()
 
 const loading = ref(false)
 const currentPage = ref(1)
@@ -22,6 +23,7 @@ const total = computed(() => postStore.total)
 const categories = computed(() => categoryStore.categories)
 const tags = computed(() => tagStore.tags)
 const searchKeyword = computed(() => route.query.keyword as string)
+const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 // 方法
 const fetchPosts = async (page: number) => {
@@ -66,6 +68,10 @@ const truncateContent = (content: string, length: number = 150) => {
   return content.substring(0, length) + '...'
 }
 
+const goToCreatePost = () => {
+  router.push('/post/edit')
+}
+
 // 初始化
 onMounted(async () => {
   await Promise.all([
@@ -84,49 +90,70 @@ onMounted(async () => {
           <h2>搜索结果: "{{ searchKeyword }}"</h2>
         </div>
         
-        <div class="post-list" v-loading="loading">
-          <div v-if="posts.length === 0 && !loading" class="empty-state">
-            <el-empty description="暂无文章" />
-          </div>
-          
-          <div v-else class="post-item" v-for="post in posts" :key="post.id" @click="goToPostDetail(post.id)">
-            <h2 class="post-title">{{ post.title }}</h2>
-            
-            <div class="post-meta">
-              <span class="meta-item">
-                <el-icon><Calendar /></el-icon>
-                {{ formatDate(post.createTime) }}
-              </span>
-              <span class="meta-item">
-                <el-icon><User /></el-icon>
-                {{ post.author }}
-              </span>
-              <span class="meta-item">
-                <el-icon><View /></el-icon>
-                {{ post.viewCount }} 次浏览
-              </span>
-            </div>
-            
-            <div class="post-summary">
-              {{ truncateContent(post.content) }}
-            </div>
-            
-            <div class="post-tags">
-              <span class="category-tag" @click.stop="goToCategory(post.category.id)">
-                <el-icon><Folder /></el-icon>
-                {{ post.category.name }}
-              </span>
-              <span 
-                class="tag-item" 
-                v-for="tag in post.tags" 
-                :key="tag.id"
-                @click.stop="goToTag(tag.id)"
-              >
-                <el-icon><Tag /></el-icon>
-                {{ tag.name }}
-              </span>
-            </div>
-          </div>
+        <div class="post-list">
+          <el-skeleton :loading="loading" animated :count="3">
+            <template #template>
+              <div class="post-item">
+                <el-skeleton-item variant="h3" style="width: 60%; margin-bottom: 10px" />
+                <div style="display: flex; margin-bottom: 15px">
+                  <el-skeleton-item variant="text" style="width: 100px; margin-right: 20px" />
+                  <el-skeleton-item variant="text" style="width: 100px; margin-right: 20px" />
+                  <el-skeleton-item variant="text" style="width: 100px" />
+                </div>
+                <el-skeleton-item variant="p" style="width: 100%" />
+                <el-skeleton-item variant="p" style="width: 100%" />
+                <el-skeleton-item variant="p" style="width: 60%" />
+                <div style="display: flex; margin-top: 15px">
+                  <el-skeleton-item variant="text" style="width: 80px; margin-right: 10px" />
+                  <el-skeleton-item variant="text" style="width: 80px" />
+                </div>
+              </div>
+            </template>
+            <template #default>
+              <div v-if="posts.length === 0" class="empty-state">
+                <el-empty description="暂无文章" />
+              </div>
+              
+              <div v-else class="post-item" v-for="post in posts" :key="post.id" @click="goToPostDetail(post.id)">
+                <h2 class="post-title">{{ post.title }}</h2>
+                
+                <div class="post-meta">
+                  <span class="meta-item">
+                    <el-icon><Calendar /></el-icon>
+                    {{ formatDate(post.createTime) }}
+                  </span>
+                  <span class="meta-item">
+                    <el-icon><User /></el-icon>
+                    {{ post.author?.nickname || post.author?.username || '匿名' }}
+                  </span>
+                  <span class="meta-item">
+                    <el-icon><View /></el-icon>
+                    {{ post.viewCount }} 次浏览
+                  </span>
+                </div>
+                
+                <div class="post-summary">
+                  {{ truncateContent(post.summary || post.content) }}
+                </div>
+                
+                <div class="post-tags">
+                  <span v-if="post.category" class="category-tag" @click.stop="goToCategory(post.category.id)">
+                    <el-icon><Folder /></el-icon>
+                    {{ post.category.name }}
+                  </span>
+                  <span 
+                    class="tag-item" 
+                    v-for="tag in post.tags" 
+                    :key="tag.id"
+                    @click.stop="goToTag(tag.id)"
+                  >
+                    <el-icon><PriceTag /></el-icon>
+                    {{ tag.name }}
+                  </span>
+                </div>
+              </div>
+            </template>
+          </el-skeleton>
         </div>
         
         <div class="pagination" v-if="total > 0">
@@ -172,6 +199,18 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    
+    <!-- 浮动写文章按钮 -->
+    <el-button
+      v-if="isLoggedIn"
+      type="primary"
+      :icon="Edit"
+      circle
+      size="large"
+      class="floating-write-btn"
+      @click="goToCreatePost"
+      title="写文章"
+    />
   </div>
 </template>
 
@@ -350,5 +389,22 @@ onMounted(async () => {
 .empty-state {
   padding: 40px 0;
   text-align: center;
+}
+
+.floating-write-btn {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+  z-index: 999;
+  transition: all 0.3s;
+}
+
+.floating-write-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.6);
 }
 </style>

@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { usePostStore } from '@/stores/post'
-import { useCommentStore } from '@/stores/comment'
-import { useUserStore } from '@/stores/user'
 import { 
   Document, 
   View, 
   ChatDotRound, 
   User,
-  TrendCharts,
   Timer
 } from '@element-plus/icons-vue'
-
-const postStore = usePostStore()
-const commentStore = useCommentStore()
-const userStore = useUserStore()
+import { postApi, commentApi, userApi } from '@/api'
 
 const loading = ref(false)
 const stats = ref({
@@ -31,25 +24,31 @@ const fetchStats = async () => {
   try {
     loading.value = true
     
-    // 获取文章统计
-    await postStore.fetchPosts({ page: 1, size: 1 })
-    stats.value.postCount = postStore.total || 0
+    // 获取文章统计和最近文章
+    const postRes = await postApi.getAdminPosts({ page: 1, size: 5 })
+    if (postRes.data) {
+      stats.value.postCount = postRes.data.total || 0
+      recentPosts.value = postRes.data.records || []
+      // 计算总浏览量
+      stats.value.viewCount = recentPosts.value.reduce((sum: number, post: any) => sum + (post.viewCount || 0), 0)
+    }
     
-    // 获取评论统计
-    await commentStore.fetchCommentsByPostId(1) // 这里应该有一个专门的API来获取所有评论
-    stats.value.commentCount = commentStore.comments.length || 0
+    // 获取评论统计和最近评论
+    const commentRes = await commentApi.getAdminComments({ page: 1, size: 5 })
+    if (commentRes.data) {
+      stats.value.commentCount = commentRes.data.total || 0
+      recentComments.value = commentRes.data.records || []
+    }
     
     // 获取用户统计
-    // 这里应该有一个专门的API来获取用户统计
-    stats.value.userCount = 10 // 模拟数据
-    
-    // 获取最近文章
-    await postStore.fetchPosts({ page: 1, size: 5 })
-    recentPosts.value = postStore.posts || []
-    
-    // 获取最近评论
-    // 这里应该有一个专门的API来获取最近评论
-    recentComments.value = [] // 模拟数据
+    try {
+      const userRes = await userApi.getUsers()
+      if (userRes.data) {
+        stats.value.userCount = userRes.data.length || 0
+      }
+    } catch {
+      stats.value.userCount = 0
+    }
     
   } catch (error) {
     console.error('获取统计数据失败:', error)
@@ -178,7 +177,7 @@ onMounted(() => {
             <div class="comment-item" v-for="comment in recentComments" :key="comment.id">
               <div class="comment-content">{{ comment.content }}</div>
               <div class="comment-meta">
-                <span>{{ comment.user.nickname || comment.user.username }}</span>
+                <span>{{ comment.user?.nickname || comment.user?.username || '匿名' }}</span>
                 <span>{{ formatDate(comment.createTime) }}</span>
               </div>
             </div>

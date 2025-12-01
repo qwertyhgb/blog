@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCategoryStore } from '@/stores/category'
-import { Search, Menu, User, ArrowDown } from '@element-plus/icons-vue'
+import { Search, Menu, User, ArrowDown, Moon, Sunny, Edit } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -11,6 +11,7 @@ const categoryStore = useCategoryStore()
 
 const searchKeyword = ref('')
 const showUserMenu = ref(false)
+const isDark = ref(false)
 
 // 计算属性
 const isLoggedIn = computed(() => userStore.isLoggedIn)
@@ -37,15 +38,31 @@ const goToProfile = () => {
   showUserMenu.value = false
 }
 
+const goToMyPosts = () => {
+  router.push('/my-posts')
+  showUserMenu.value = false
+}
+
 const goToAdmin = () => {
   router.push('/admin')
   showUserMenu.value = false
+}
+
+const toggleDark = () => {
+  const html = document.documentElement
+  if (isDark.value) {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
 }
 
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
   if (command === 'profile') {
     goToProfile()
+  } else if (command === 'my-posts') {
+    goToMyPosts()
   } else if (command === 'admin') {
     goToAdmin()
   } else if (command === 'logout') {
@@ -80,6 +97,10 @@ categoryStore.fetchCategories()
           </template>
         </el-dropdown>
         <router-link to="/tag" class="nav-item">标签</router-link>
+        <router-link v-if="isLoggedIn" to="/post/edit" class="nav-item write-btn">
+          <el-icon><edit /></el-icon>
+          写文章
+        </router-link>
       </nav>
       
       <div class="search-box">
@@ -96,18 +117,27 @@ categoryStore.fetchCategories()
       </div>
       
       <div class="user-menu">
+        <el-switch
+          v-model="isDark"
+          inline-prompt
+          :active-icon="Moon"
+          :inactive-icon="Sunny"
+          @change="toggleDark"
+          style="margin-right: 15px"
+        />
         <template v-if="isLoggedIn">
           <el-dropdown @command="handleCommand">
             <span class="user-info">
-              <el-avatar :size="32" :src="userInfo.avatar">
-                {{ userInfo.nickname ? userInfo.nickname.charAt(0) : 'U' }}
+              <el-avatar :size="32" :src="userInfo?.avatar">
+                {{ userInfo?.nickname ? userInfo.nickname.charAt(0) : 'U' }}
               </el-avatar>
-              <span class="username">{{ userInfo.nickname || userInfo.username }}</span>
+              <span class="username">{{ userInfo?.nickname || userInfo?.username }}</span>
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="my-posts">我的文章</el-dropdown-item>
                 <el-dropdown-item v-if="isAdmin" command="admin">管理后台</el-dropdown-item>
                 <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
@@ -122,8 +152,6 @@ categoryStore.fetchCategories()
     </div>
   </header>
 </template>
-
-
 
 <style scoped>
 .header {
@@ -167,6 +195,21 @@ categoryStore.fetchCategories()
 
 .nav-item:hover {
   color: #409eff;
+}
+
+.write-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff !important;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.write-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  color: #fff !important;
 }
 
 .search-box {

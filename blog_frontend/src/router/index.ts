@@ -33,6 +33,24 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/my-posts',
+      name: 'my-posts',
+      component: () => import('../views/MyPosts.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/category/:id',
+      name: 'category',
+      component: () => import('../views/Category.vue'),
+      props: true
+    },
+    {
+      path: '/tag/:id',
+      name: 'tag',
+      component: () => import('../views/Tag.vue'),
+      props: true
+    },
+    {
       path: '/admin',
       name: 'admin-layout',
       component: () => import('../views/admin/Layout.vue'),
@@ -98,7 +116,7 @@ router.beforeEach((to, from, next) => {
   }
   
   // 检查是否需要管理员权限
-  if (to.meta.requiresAdmin && userStore.user?.role !== 'admin') {
+  if (to.meta.requiresAdmin && userStore.userInfo?.role !== 'ADMIN') {
     next({ name: 'home' })
     return
   }

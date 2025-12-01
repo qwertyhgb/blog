@@ -2,9 +2,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
-import { useCategoryStore } from '@/stores/category'
-import { useTagStore } from '@/stores/tag'
-import { ArrowLeft, Plus, Delete } from '@element-plus/icons-vue'
+import { useCategoryStore, useTagStore } from '@/stores/category'
+import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -63,8 +62,8 @@ const fetchPost = async () => {
       postForm.title = post.title
       postForm.content = post.content
       postForm.summary = post.summary || ''
-      postForm.categoryId = post.category.id
-      postForm.tagIds = post.tags.map(tag => tag.id)
+      postForm.categoryId = post.category?.id || null
+      postForm.tagIds = post.tags?.map((tag: any) => tag.id) || []
     }
   } catch (error: any) {
     ElMessage.error(error.message || '获取文章详情失败')
@@ -98,7 +97,7 @@ const submitPost = async () => {
           ElMessage.success('创建成功')
         }
         
-        router.push('/admin/posts')
+        router.back()
       } catch (error: any) {
         ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
       } finally {
@@ -109,7 +108,7 @@ const submitPost = async () => {
 }
 
 const goBack = () => {
-  router.push('/admin/posts')
+  router.back()
 }
 
 const showAddTag = () => {
@@ -136,16 +135,6 @@ const addNewTag = async () => {
 const cancelAddTag = () => {
   newTagInput.value = ''
   showNewTagInput.value = false
-}
-
-const deleteTag = async (id: number) => {
-  try {
-    await tagStore.deleteTag(id)
-    ElMessage.success('标签删除成功')
-    await tagStore.fetchTags()
-  } catch (error: any) {
-    ElMessage.error(error.message || '删除标签失败')
-  }
 }
 
 // 初始化

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Setting } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
+const activeTab = ref('site')
 
 const siteSettings = ref({
   siteName: '个人博客',
@@ -235,16 +235,6 @@ onMounted(() => {
     </el-tabs>
   </div>
 </template>
-
-<script>
-export default {
-  data() {
-    return {
-      activeTab: 'site'
-    }
-  }
-}
-</script>
 
 <style scoped>
 .system-settings {

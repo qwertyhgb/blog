@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { 
   Menu, 
-  Location, 
   Document, 
   Setting, 
   User, 
@@ -26,7 +25,7 @@ const userInfo = computed(() => userStore.userInfo)
 
 const menuItems = [
   {
-    index: '/admin',
+    index: '/admin/dashboard',
     title: '仪表盘',
     icon: House
   },
@@ -66,13 +65,20 @@ const toggleSidebar = () => {
   isCollapse.value = !isCollapse.value
 }
 
-const handleLogout = async () => {
-  await userStore.logout()
-  router.push('/login')
+const handleLogout = () => {
+  userStore.logout()
 }
 
 const goToProfile = () => {
   router.push('/profile')
+}
+
+const handleCommand = (command: string) => {
+  if (command === 'profile') {
+    goToProfile()
+  } else if (command === 'logout') {
+    handleLogout()
+  }
 }
 </script>
 
@@ -111,10 +117,10 @@ const goToProfile = () => {
           <div class="header-right">
             <el-dropdown @command="handleCommand">
               <span class="user-info">
-                <el-avatar :size="32" :src="userInfo.avatar">
-                  {{ userInfo.nickname ? userInfo.nickname.charAt(0) : 'U' }}
+                <el-avatar :size="32" :src="userInfo?.avatar">
+                  {{ userInfo?.nickname ? userInfo.nickname.charAt(0) : 'U' }}
                 </el-avatar>
-                <span class="username">{{ userInfo.nickname || userInfo.username }}</span>
+                <span class="username">{{ userInfo?.nickname || userInfo?.username || '管理员' }}</span>
                 <el-icon class="el-icon--right"><arrow-down /></el-icon>
               </span>
               <template #dropdown>
@@ -134,20 +140,6 @@ const goToProfile = () => {
     </el-container>
   </div>
 </template>
-
-<script>
-export default {
-  methods: {
-    handleCommand(command) {
-      if (command === 'profile') {
-        this.goToProfile()
-      } else if (command === 'logout') {
-        this.handleLogout()
-      }
-    }
-  }
-}
-</script>
 
 <style scoped>
 .admin-layout {

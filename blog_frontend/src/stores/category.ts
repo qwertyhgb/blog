@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { categoryApi, tagApi } from '@/api'
+import type { Category, Tag } from '@/types'
 
 export const useCategoryStore = defineStore('category', () => {
   // 状态
-  const categories = ref<any[]>([])
-  const currentCategory = ref<any>(null)
+  const categories = ref<Category[]>([])
+  const currentCategory = ref<Category | null>(null)
   const loading = ref(false)
-  
+
   // 方法
   const fetchCategories = async () => {
     try {
@@ -21,7 +22,7 @@ export const useCategoryStore = defineStore('category', () => {
       loading.value = false
     }
   }
-  
+
   const fetchCategoryById = async (id: number) => {
     try {
       loading.value = true
@@ -34,7 +35,7 @@ export const useCategoryStore = defineStore('category', () => {
       loading.value = false
     }
   }
-  
+
   const createCategory = async (category: any) => {
     try {
       const res = await categoryApi.createCategory(category)
@@ -43,7 +44,7 @@ export const useCategoryStore = defineStore('category', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const updateCategory = async (id: number, category: any) => {
     try {
       const res = await categoryApi.updateCategory(id, category)
@@ -52,7 +53,7 @@ export const useCategoryStore = defineStore('category', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const deleteCategory = async (id: number) => {
     try {
       const res = await categoryApi.deleteCategory(id)
@@ -61,7 +62,7 @@ export const useCategoryStore = defineStore('category', () => {
       return Promise.reject(error)
     }
   }
-  
+
   return {
     categories,
     currentCategory,
@@ -76,10 +77,10 @@ export const useCategoryStore = defineStore('category', () => {
 
 export const useTagStore = defineStore('tag', () => {
   // 状态
-  const tags = ref<any[]>([])
-  const currentTag = ref<any>(null)
+  const tags = ref<Tag[]>([])
+  const currentTag = ref<Tag | null>(null)
   const loading = ref(false)
-  
+
   // 方法
   const fetchTags = async () => {
     try {
@@ -93,7 +94,7 @@ export const useTagStore = defineStore('tag', () => {
       loading.value = false
     }
   }
-  
+
   const fetchTagById = async (id: number) => {
     try {
       loading.value = true
@@ -106,7 +107,7 @@ export const useTagStore = defineStore('tag', () => {
       loading.value = false
     }
   }
-  
+
   const fetchTagsByPostId = async (postId: number) => {
     try {
       loading.value = true
@@ -118,7 +119,7 @@ export const useTagStore = defineStore('tag', () => {
       loading.value = false
     }
   }
-  
+
   const createTag = async (tag: any) => {
     try {
       const res = await tagApi.createTag(tag)
@@ -127,7 +128,7 @@ export const useTagStore = defineStore('tag', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const updateTag = async (id: number, tag: any) => {
     try {
       const res = await tagApi.updateTag(id, tag)
@@ -136,7 +137,7 @@ export const useTagStore = defineStore('tag', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const deleteTag = async (id: number) => {
     try {
       const res = await tagApi.deleteTag(id)
@@ -145,7 +146,7 @@ export const useTagStore = defineStore('tag', () => {
       return Promise.reject(error)
     }
   }
-  
+
   return {
     tags,
     currentTag,

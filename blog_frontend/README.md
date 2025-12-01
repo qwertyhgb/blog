@@ -1,155 +1,226 @@
-# 个人博客系统 - 前端
+# 博客前端
 
-这是一个基于 Vue 3 + TypeScript + Element Plus 构建的个人博客系统前端应用。
+基于 Vue 3 + TypeScript + Vite + Element Plus 的现代化博客前端应用。
 
 ## 技术栈
 
-- Vue 3
-- TypeScript
-- Element Plus
-- Vue Router
-- Pinia
-- Axios
-- Day.js
-- Markdown-it
-
-## 项目结构
-
-```
-frontend/
-├── public/                 # 静态资源
-├── src/
-│   ├── api/               # API 接口
-│   ├── assets/            # 资源文件
-│   ├── components/        # 公共组件
-│   │   ├── Header.vue     # 页头组件
-│   │   └── Footer.vue     # 页脚组件
-│   ├── router/            # 路由配置
-│   ├── stores/            # 状态管理
-│   │   ├── user.ts        # 用户状态
-│   │   ├── post.ts        # 文章状态
-│   │   ├── category.ts    # 分类和标签状态
-│   │   └── comment.ts     # 评论状态
-│   ├── utils/             # 工具函数
-│   │   └── request.ts     # 请求封装
-│   ├── views/             # 页面组件
-│   │   ├── Home.vue       # 首页
-│   │   ├── Login.vue      # 登录页
-│   │   ├── Register.vue   # 注册页
-│   │   ├── PostDetail.vue # 文章详情页
-│   │   ├── PostEdit.vue   # 文章编辑页
-│   │   ├── NotFound.vue   # 404页面
-│   │   └── admin/         # 管理后台页面
-│   │       ├── Layout.vue           # 后台布局
-│   │       ├── Dashboard.vue        # 仪表盘
-│   │       ├── PostManagement.vue   # 文章管理
-│   │       ├── CategoryManagement.vue # 分类管理
-│   │       ├── TagManagement.vue    # 标签管理
-│   │       ├── CommentManagement.vue # 评论管理
-│   │       ├── UserManagement.vue   # 用户管理
-│   │       └── SystemSettings.vue   # 系统设置
-│   ├── App.vue            # 根组件
-│   └── main.ts            # 入口文件
-├── .env.development       # 开发环境变量
-├── .env.production        # 生产环境变量
-├── index.html             # HTML 模板
-└── package.json           # 项目配置
-```
+- **框架**: Vue 3.5 (Composition API)
+- **语言**: TypeScript
+- **构建工具**: Vite 7
+- **UI框架**: Element Plus
+- **路由**: Vue Router 4
+- **状态管理**: Pinia
+- **HTTP客户端**: Axios
+- **Markdown**: markdown-it + highlight.js
+- **日期处理**: dayjs
 
 ## 功能特性
 
-### 用户功能
-- 用户注册和登录
-- 浏览文章列表和详情
-- 按分类和标签筛选文章
-- 搜索文章
-- 发表评论
-- 编辑个人文章
+- ✅ 用户注册/登录
+- ✅ 文章列表、详情、搜索
+- ✅ Markdown编辑器
+- ✅ 分类和标签浏览
+- ✅ 评论系统
+- ✅ 管理员后台
+- ✅ 响应式设计
+- ✅ Token自动刷新
+- ✅ 路由权限控制
 
-### 管理员功能
-- 仪表盘数据统计
-- 文章管理（增删改查）
-- 分类管理
-- 标签管理
-- 评论管理（审核、删除）
-- 用户管理
-- 系统设置
-
-## 开发指南
-
-### 环境要求
-- Node.js 16+
-- npm 或 yarn
+## 快速开始
 
 ### 安装依赖
+
 ```bash
 npm install
 ```
 
-### 开发运行
+### 开发环境
+
 ```bash
 npm run dev
 ```
 
-### 构建生产版本
+访问 http://localhost:5173
+
+### 生产构建
+
 ```bash
 npm run build
 ```
 
-### 预览生产版本
+### 预览生产构建
+
 ```bash
 npm run preview
 ```
 
+## 项目结构
+
+```
+src/
+├── api/              # API接口定义
+│   ├── index.ts
+│   └── modules/      # 按模块划分的API
+│       ├── auth.ts
+│       ├── post.ts
+│       ├── category.ts
+│       ├── tag.ts
+│       ├── comment.ts
+│       └── user.ts
+├── assets/           # 静态资源
+├── components/       # 公共组件
+│   ├── Header.vue
+│   ├── Footer.vue
+│   └── ...
+├── router/           # 路由配置
+│   └── index.ts
+├── stores/           # Pinia状态管理
+│   ├── user.ts
+│   ├── post.ts
+│   ├── category.ts
+│   └── comment.ts
+├── types/            # TypeScript类型定义
+│   └── index.ts
+├── utils/            # 工具函数
+│   └── request.ts    # Axios封装
+├── views/            # 页面组件
+│   ├── Home.vue
+│   ├── Login.vue
+│   ├── Register.vue
+│   ├── PostDetail.vue
+│   ├── PostEdit.vue
+│   └── admin/        # 管理后台页面
+│       ├── Layout.vue
+│       ├── Dashboard.vue
+│       ├── PostManagement.vue
+│       └── ...
+├── App.vue           # 根组件
+└── main.ts           # 入口文件
+```
+
 ## 环境变量
 
-### 开发环境 (.env.development)
-```
+创建 `.env.local` 文件（参考 `.env.local.example`）：
+
+```bash
+# API地址
 VITE_API_BASE_URL=http://localhost:8080/api
+
+# 应用信息
 VITE_APP_TITLE=个人博客
 VITE_APP_DESCRIPTION=分享技术心得与生活感悟
 ```
 
-### 生产环境 (.env.production)
-```
-VITE_API_BASE_URL=/api
-VITE_APP_TITLE=个人博客
-VITE_APP_DESCRIPTION=分享技术心得与生活感悟
-```
+## 路由说明
 
-## API 接口
+### 公开路由
+- `/` - 首页
+- `/login` - 登录
+- `/register` - 注册
+- `/post/:id` - 文章详情
+- `/category/:id` - 分类页面
+- `/tag/:id` - 标签页面
 
-API 接口封装在 `src/api/index.ts` 中，包括：
-- 用户认证接口
-- 文章接口
-- 分类接口
-- 标签接口
-- 评论接口
+### 需要登录
+- `/post/edit/:id?` - 编辑/创建文章
+
+### 需要管理员权限
+- `/admin` - 管理后台
+- `/admin/dashboard` - 仪表盘
+- `/admin/posts` - 文章管理
+- `/admin/categories` - 分类管理
+- `/admin/tags` - 标签管理
+- `/admin/comments` - 评论管理
+- `/admin/users` - 用户管理
+- `/admin/settings` - 系统设置
+
+## API封装
+
+### 请求拦截器
+- 自动添加 Authorization header
+- 统一错误处理
+
+### 响应拦截器
+- 自动处理Token刷新
+- 统一响应格式处理
+- 错误提示
+
+### 使用示例
+
+```typescript
+import { authApi, postApi } from '@/api'
+
+// 登录
+const res = await authApi.login({ username, password })
+
+// 获取文章列表
+const posts = await postApi.getList({ page: 1, size: 10 })
+```
 
 ## 状态管理
 
-使用 Pinia 进行状态管理，主要 store 包括：
-- `useUserStore`: 用户信息和认证状态
-- `usePostStore`: 文章数据
-- `useCategoryStore`: 分类数据
-- `useTagStore`: 标签数据
-- `useCommentStore`: 评论数据
+使用 Pinia 进行状态管理：
 
-## 路由配置
+```typescript
+import { useUserStore } from '@/stores/user'
 
-路由配置在 `src/router/index.ts` 中，包括：
-- 前台页面路由
-- 后台管理路由
-- 路由守卫（权限控制）
+const userStore = useUserStore()
 
-## 部署说明
+// 登录
+await userStore.login({ username, password })
 
-1. 修改 `.env.production` 中的 `VITE_API_BASE_URL` 为实际的后端 API 地址
-2. 执行构建命令：`npm run build`
-3. 将 `dist` 目录部署到 Web 服务器
+// 获取用户信息
+const user = userStore.userInfo
 
-## 注意事项
+// 登出
+userStore.logout()
+```
 
-- 本项目需要配合后端 API 使用
-- 确保后端 API 服务正常运行
-- 生产环境需要配置正确的 API 地址
+## 开发规范
+
+### 代码风格
+- 使用 Composition API
+- 使用 `<script setup>` 语法
+- TypeScript 严格模式
+- 组件使用 PascalCase 命名
+
+### 提交规范
+- feat: 新功能
+- fix: 修复bug
+- docs: 文档更新
+- style: 代码格式调整
+- refactor: 重构
+- test: 测试相关
+- chore: 构建/工具相关
+
+## 常见问题
+
+### 1. 端口被占用
+修改 `vite.config.ts` 中的端口配置：
+```typescript
+export default defineConfig({
+  server: {
+    port: 3000
+  }
+})
+```
+
+### 2. API请求失败
+- 检查后端是否启动
+- 检查 `.env.local` 中的 API 地址
+- 检查浏览器控制台的网络请求
+
+### 3. 路由404
+- 确保使用 `createWebHistory` 模式
+- 生产环境需要配置服务器重定向到 index.html
+
+## 浏览器支持
+
+- Chrome >= 87
+- Firefox >= 78
+- Safari >= 14
+- Edge >= 88
+
+## License
+
+MIT

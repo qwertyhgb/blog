@@ -14,6 +14,7 @@ const registerFormRef = ref()
 const registerForm = reactive({
   username: '',
   nickname: '',
+  email: '',
   password: '',
   confirmPassword: ''
 })
@@ -37,6 +38,10 @@ const registerRules = {
     { required: true, message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
@@ -56,6 +61,7 @@ const handleRegister = async () => {
         await userStore.register({
           username: registerForm.username,
           nickname: registerForm.nickname,
+          email: registerForm.email,
           password: registerForm.password
         })
         ElMessage.success('注册成功，请登录')
@@ -99,6 +105,14 @@ const goToLogin = () => {
             v-model="registerForm.nickname"
             placeholder="昵称"
             :prefix-icon="User"
+          />
+        </el-form-item>
+        
+        <el-form-item prop="email">
+          <el-input
+            v-model="registerForm.email"
+            placeholder="邮箱"
+            type="email"
           />
         </el-form-item>
         

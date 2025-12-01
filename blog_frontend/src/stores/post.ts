@@ -1,19 +1,30 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { postApi } from '@/api'
+import type { Post } from '@/types'
 
 export const usePostStore = defineStore('post', () => {
   // 状态
-  const posts = ref<any[]>([])
-  const currentPost = ref<any>(null)
+  const posts = ref<Post[]>([])
+  const currentPost = ref<Post | null>(null)
   const loading = ref(false)
-  
+  const total = ref(0)
+
   // 方法
-  const fetchPosts = async () => {
+  const fetchPosts = async (params?: any) => {
     try {
       loading.value = true
-      const res = await postApi.getPosts()
-      posts.value = res.data
+      const res = await postApi.getPosts(params)
+      if (res.data && Array.isArray(res.data.records)) {
+        posts.value = res.data.records
+        total.value = res.data.total
+      } else if (Array.isArray(res.data)) {
+        posts.value = res.data
+        total.value = res.data.length
+      } else {
+        posts.value = []
+        total.value = 0
+      }
       return Promise.resolve(res)
     } catch (error) {
       return Promise.reject(error)
@@ -21,7 +32,7 @@ export const usePostStore = defineStore('post', () => {
       loading.value = false
     }
   }
-  
+
   const fetchPostById = async (id: number) => {
     try {
       loading.value = true
@@ -34,7 +45,7 @@ export const usePostStore = defineStore('post', () => {
       loading.value = false
     }
   }
-  
+
   const fetchPostsByCategory = async (categoryId: number) => {
     try {
       loading.value = true
@@ -47,7 +58,7 @@ export const usePostStore = defineStore('post', () => {
       loading.value = false
     }
   }
-  
+
   const fetchPostsByTag = async (tagId: number) => {
     try {
       loading.value = true
@@ -60,7 +71,7 @@ export const usePostStore = defineStore('post', () => {
       loading.value = false
     }
   }
-  
+
   const createPost = async (post: any) => {
     try {
       const res = await postApi.createPost(post)
@@ -69,7 +80,7 @@ export const usePostStore = defineStore('post', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const updatePost = async (id: number, post: any) => {
     try {
       const res = await postApi.updatePost(id, post)
@@ -78,7 +89,7 @@ export const usePostStore = defineStore('post', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const deletePost = async (id: number) => {
     try {
       const res = await postApi.deletePost(id)
@@ -87,7 +98,7 @@ export const usePostStore = defineStore('post', () => {
       return Promise.reject(error)
     }
   }
-  
+
   const likePost = async (id: number) => {
     try {
       const res = await postApi.likePost(id)
@@ -99,11 +110,12 @@ export const usePostStore = defineStore('post', () => {
       return Promise.reject(error)
     }
   }
-  
+
   return {
     posts,
     currentPost,
     loading,
+    total,
     fetchPosts,
     fetchPostById,
     fetchPostsByCategory,

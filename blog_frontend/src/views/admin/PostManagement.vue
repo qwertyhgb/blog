@@ -20,13 +20,16 @@ const total = ref(0)
 const fetchPosts = async () => {
   try {
     loading.value = true
-    await postStore.fetchPosts({
+    const { postApi } = await import('@/api')
+    const res = await postApi.getAdminPosts({
       page: currentPage.value,
       size: pageSize.value,
-      keyword: searchKeyword.value
+      keyword: searchKeyword.value || undefined
     })
-    posts.value = postStore.posts
-    total.value = postStore.total
+    if (res.data) {
+      posts.value = res.data.records || []
+      total.value = res.data.total || 0
+    }
   } catch (error) {
     console.error('获取文章列表失败:', error)
   } finally {
@@ -60,7 +63,8 @@ const deletePost = async (id: number) => {
       type: 'warning'
     })
     
-    await postStore.deletePost(id)
+    const { postApi } = await import('@/api')
+    await postApi.deletePost(id)
     ElMessage.success('删除成功')
     fetchPosts()
   } catch (error: any) {
@@ -71,7 +75,7 @@ const deletePost = async (id: number) => {
 }
 
 const createPost = () => {
-  router.push('/post/create')
+  router.push('/post/edit')
 }
 
 const formatDate = (dateString: string) => {
@@ -122,14 +126,14 @@ onMounted(() => {
         
         <el-table-column prop="category" label="分类" width="120">
           <template #default="{ row }">
-            {{ row.category.name }}
+            {{ row.category?.name || '-' }}
           </template>
         </el-table-column>
         
         <el-table-column prop="tags" label="标签" width="200">
           <template #default="{ row }">
             <el-tag
-              v-for="tag in row.tags"
+              v-for="tag in (row.tags || [])"
               :key="tag.id"
               size="small"
               style="margin-right: 5px"

@@ -43,30 +43,12 @@ const users = ref<any[]>([])
 const fetchUsers = async () => {
   try {
     loading.value = true
-    // 这里应该有一个专门的API来获取所有用户
-    // 暂时使用模拟数据
-    users.value = [
-      {
-        id: 1,
-        username: 'admin',
-        nickname: '管理员',
-        email: 'admin@example.com',
-        role: 'admin',
-        createTime: '2023-01-01 00:00:00',
-        lastLoginTime: '2023-12-01 10:00:00'
-      },
-      {
-        id: 2,
-        username: 'user1',
-        nickname: '用户1',
-        email: 'user1@example.com',
-        role: 'user',
-        createTime: '2023-02-01 00:00:00',
-        lastLoginTime: '2023-11-30 15:30:00'
-      }
-    ]
+    const { userApi } = await import('@/api')
+    const res = await userApi.getUsers()
+    users.value = res.data || []
   } catch (error) {
     console.error('获取用户列表失败:', error)
+    users.value = []
   } finally {
     loading.value = false
   }
@@ -102,12 +84,13 @@ const submitUser = async () => {
   await userFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
+        const { userApi } = await import('@/api')
         if (isEdit.value && currentUserId.value) {
-          // 这里应该有一个专门的API来更新用户
+          await userApi.updateUser(currentUserId.value, userForm.value)
           ElMessage.success('更新成功')
         } else {
-          // 这里应该有一个专门的API来创建用户
-          ElMessage.success('创建成功')
+          ElMessage.warning('暂不支持创建用户，请通过注册页面注册')
+          return
         }
         
         dialogVisible.value = false
@@ -127,7 +110,8 @@ const deleteUser = async (id: number) => {
       type: 'warning'
     })
     
-    // 这里应该有一个专门的API来删除用户
+    const { userApi } = await import('@/api')
+    await userApi.deleteUser(id)
     ElMessage.success('删除成功')
     fetchUsers()
   } catch (error: any) {
@@ -147,10 +131,10 @@ const formatDate = (dateString: string) => {
 }
 
 const getRoleText = (role: string) => {
-  switch (role) {
-    case 'admin':
+  switch (role?.toUpperCase()) {
+    case 'ADMIN':
       return '管理员'
-    case 'user':
+    case 'USER':
       return '普通用户'
     default:
       return '未知'
@@ -158,10 +142,10 @@ const getRoleText = (role: string) => {
 }
 
 const getRoleType = (role: string) => {
-  switch (role) {
-    case 'admin':
+  switch (role?.toUpperCase()) {
+    case 'ADMIN':
       return 'danger'
-    case 'user':
+    case 'USER':
       return 'success'
     default:
       return 'info'

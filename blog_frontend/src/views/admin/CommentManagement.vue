@@ -1,44 +1,51 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useCommentStore } from '@/stores/comment'
-import { usePostStore } from '@/stores/post'
+import { ref, onMounted, watch } from 'vue'
 import { Check, Close, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-const commentStore = useCommentStore()
-const postStore = usePostStore()
+import { commentApi } from '@/api'
 
 const loading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
-const statusFilter = ref('all') // all, pending, approved, rejected
+const statusFilter = ref<number | undefined>(undefined)
 
 const comments = ref<any[]>([])
 const total = ref(0)
-const posts = ref<any[]>([])
 
 // 方法
 const fetchComments = async () => {
   try {
     loading.value = true
-    // 这里应该有一个专门的API来获取所有评论，而不是按文章ID获取
-    // 暂时使用模拟数据
-    comments.value = []
-    total.value = 0
+    const res = await commentApi.getAdminComments({
+      page: currentPage.value,
+      size: pageSize.value,
+      status: statusFilter.value
+    })
+    if (res.data) {
+      comments.value = res.data.records || []
+      total.value = res.data.total || 0
+    }
   } catch (error) {
     console.error('获取评论列表失败:', error)
+    comments.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
-const fetchPosts = async () => {
-  try {
-    await postStore.fetchPosts({ page: 1, size: 1000 })
-    posts.value = postStore.posts
-  } catch (error) {
-    console.error('获取文章列表失败:', error)
+const handleStatusChange = (val: string) => {
+  if (val === 'all') {
+    statusFilter.value = undefined
+  } else if (val === 'pending') {
+    statusFilter.value = 0
+  } else if (val === 'approved') {
+    statusFilter.value = 1
+  } else if (val === 'rejected') {
+    statusFilter.value = 2
   }
+  currentPage.value = 1
+  fetchComments()
 }
 
 const handlePageChange = (page: number) => {
@@ -48,7 +55,7 @@ const handlePageChange = (page: number) => {
 
 const approveComment = async (id: number) => {
   try {
-    await commentStore.approveComment(id)
+    await commentApi.approveComment(id)
     ElMessage.success('审核通过')
     fetchComments()
   } catch (error: any) {
@@ -58,7 +65,7 @@ const approveComment = async (id: number) => {
 
 const rejectComment = async (id: number) => {
   try {
-    await commentStore.rejectComment(id)
+    await commentApi.rejectComment(id)
     ElMessage.success('审核拒绝')
     fetchComments()
   } catch (error: any) {
@@ -74,7 +81,7 @@ const deleteComment = async (id: number) => {
       type: 'warning'
     })
     
-    await commentStore.deleteComment(id)
+    await commentApi.deleteComment(id)
     ElMessage.success('删除成功')
     fetchComments()
   } catch (error: any) {
@@ -84,36 +91,31 @@ const deleteComment = async (id: number) => {
   }
 }
 
-const getPostTitle = (postId: number) => {
-  const post = posts.value.find(p => p.id === postId)
-  return post ? post.title : '未知文章'
-}
-
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-const getStatusText = (status: string) => {
+const getStatusText = (status: number) => {
   switch (status) {
-    case 'pending':
+    case 0:
       return '待审核'
-    case 'approved':
+    case 1:
       return '已通过'
-    case 'rejected':
+    case 2:
       return '已拒绝'
     default:
       return '未知'
   }
 }
 
-const getStatusType = (status: string) => {
+const getStatusType = (status: number) => {
   switch (status) {
-    case 'pending':
+    case 0:
       return 'warning'
-    case 'approved':
+    case 1:
       return 'success'
-    case 'rejected':
+    case 2:
       return 'danger'
     default:
       return 'info'
@@ -121,11 +123,8 @@ const getStatusType = (status: string) => {
 }
 
 // 初始化
-onMounted(async () => {
-  await Promise.all([
-    fetchComments(),
-    fetchPosts()
-  ])
+onMounted(() => {
+  fetchComments()
 })
 </script>
 
@@ -133,7 +132,7 @@ onMounted(async () => {
   <div class="comment-management">
     <div class="page-header">
       <h2>评论管理</h2>
-      <el-select v-model="statusFilter" placeholder="筛选状态" style="width: 120px" @change="fetchComments">
+      <el-select placeholder="筛选状态" style="width: 120px" @change="handleStatusChange">
         <el-option label="全部" value="all" />
         <el-option label="待审核" value="pending" />
         <el-option label="已通过" value="approved" />
@@ -156,15 +155,15 @@ onMounted(async () => {
           </template>
         </el-table-column>
         
-        <el-table-column label="文章" min-width="150">
+        <el-table-column label="文章ID" width="100">
           <template #default="{ row }">
-            {{ getPostTitle(row.postId) }}
+            {{ row.postId }}
           </template>
         </el-table-column>
         
         <el-table-column label="用户" width="120">
           <template #default="{ row }">
-            {{ row.user.nickname || row.user.username }}
+            {{ row.user?.nickname || row.user?.username || '未知' }}
           </template>
         </el-table-column>
         
@@ -185,7 +184,7 @@ onMounted(async () => {
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button
-              v-if="row.status === 'pending'"
+              v-if="row.status === 0"
               type="success"
               size="small"
               :icon="Check"
@@ -194,7 +193,7 @@ onMounted(async () => {
               通过
             </el-button>
             <el-button
-              v-if="row.status === 'pending'"
+              v-if="row.status === 0"
               type="warning"
               size="small"
               :icon="Close"

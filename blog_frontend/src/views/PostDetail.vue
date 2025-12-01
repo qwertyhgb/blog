@@ -61,10 +61,18 @@ const fetchPost = async () => {
   try {
     loading.value = true
     await postStore.fetchPostById(postId.value)
-    await commentStore.fetchCommentsByPostId(postId.value)
+    
+    // 只有成功获取文章后才获取评论
+    if (postStore.currentPost) {
+      await commentStore.fetchCommentsByPostId(postId.value)
+    }
   } catch (error: any) {
+    console.error('获取文章详情失败:', error)
     ElMessage.error(error.message || '获取文章详情失败')
-    router.push('/')
+    // 延迟跳转，让用户看到错误信息
+    setTimeout(() => {
+      router.push('/')
+    }, 1500)
   } finally {
     loading.value = false
   }
@@ -170,7 +178,7 @@ onMounted(() => {
           </span>
           <span class="meta-item">
             <el-icon><User /></el-icon>
-            {{ post.author }}
+            {{ post.author?.nickname || post.author?.username || '匿名' }}
           </span>
           <span class="meta-item">
             <el-icon><View /></el-icon>
@@ -179,7 +187,7 @@ onMounted(() => {
         </div>
         
         <div class="post-tags">
-          <span class="category-tag" @click="goToCategory(post.category.id)">
+          <span v-if="post.category" class="category-tag" @click="goToCategory(post.category.id)">
             <el-icon><Folder /></el-icon>
             {{ post.category.name }}
           </span>
@@ -249,17 +257,17 @@ onMounted(() => {
           <div v-else class="comment-item" v-for="comment in comments" :key="comment.id">
             <div class="comment-header">
               <div class="comment-user">
-                <el-avatar :size="32" :src="comment.user.avatar">
-                  {{ comment.user.nickname ? comment.user.nickname.charAt(0) : 'U' }}
+                <el-avatar :size="32" :src="comment.user?.avatar">
+                  {{ comment.user?.nickname ? comment.user.nickname.charAt(0) : 'U' }}
                 </el-avatar>
-                <span class="username">{{ comment.user.nickname || comment.user.username }}</span>
+                <span class="username">{{ comment.user?.nickname || comment.user?.username || '匿名' }}</span>
               </div>
               <div class="comment-time">{{ formatDate(comment.createTime) }}</div>
             </div>
             
             <div class="comment-content">{{ comment.content }}</div>
             
-            <div class="comment-actions" v-if="isAdmin || (isLoggedIn && userStore.userInfo.id === comment.user.id)">
+            <div class="comment-actions" v-if="isAdmin || (isLoggedIn && userStore.userInfo?.id === comment.user?.id)">
               <el-button type="danger" size="small" @click="deleteComment(comment.id)">删除</el-button>
             </div>
           </div>

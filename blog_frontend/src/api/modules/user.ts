@@ -28,5 +28,13 @@ export const userApi = {
             url: `/users/${id}`,
             method: 'delete'
         })
+    },
+
+    changePassword: (id: number, data: { oldPassword: string; newPassword: string }) => {
+        return request({
+            url: `/users/${id}/change-password`,
+            method: 'post',
+            data
+        })
     }
 }

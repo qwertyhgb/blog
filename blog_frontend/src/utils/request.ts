@@ -1,6 +1,8 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
-import { ElMessage } from 'element-plus'
+import { createDiscreteApi } from 'naive-ui'
 import { useUserStore } from '@/stores/user'
+
+const { message } = createDiscreteApi(['message'])
 
 // 创建axios实例
 const api = axios.create({
@@ -44,7 +46,7 @@ api.interceptors.response.use(
     const res = response.data
     // 如果响应码不是200，则判断为错误
     if (res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
+      message.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || '请求失败'))
     } else {
       return res
@@ -77,7 +79,7 @@ api.interceptors.response.use(
               isRefreshing = false
               refreshSubscribers = []
               userStore.logout()
-              ElMessage.error('登录已过期，请重新登录')
+              message.error('登录已过期，请重新登录')
               return Promise.reject(refreshError)
             }
           } else {
@@ -91,25 +93,25 @@ api.interceptors.response.use(
           }
         } else {
           userStore.logout()
-          ElMessage.error('未授权，请重新登录')
+          message.error('未授权，请重新登录')
         }
       } else {
         switch (error.response.status) {
           case 403:
-            ElMessage.error('拒绝访问')
+            message.error('拒绝访问')
             break
           case 404:
-            ElMessage.error('请求的资源不存在')
+            message.error('请求的资源不存在')
             break
           case 500:
-            ElMessage.error('服务器内部错误')
+            message.error('服务器内部错误')
             break
           default:
-            ElMessage.error(`请求失败: ${error.response.data?.message || '未知错误'}`)
+            message.error(`请求失败: ${error.response.data?.message || '未知错误'}`)
         }
       }
     } else {
-      ElMessage.error('网络错误，请检查网络连接')
+      message.error('网络错误，请检查网络连接')
     }
 
     return Promise.reject(error)

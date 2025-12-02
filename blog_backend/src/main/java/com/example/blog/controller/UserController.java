@@ -118,4 +118,31 @@ public class UserController {
         userService.deleteById(id);
         return ApiResponse.success("删除用户成功", null);
     }
+    
+    @PostMapping("/{id}/change-password")
+    public ApiResponse<Void> changePassword(@PathVariable Long id, @RequestBody com.example.blog.dto.PasswordChangeRequest request) {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            return ApiResponse.error(401, "请先登录");
+        }
+        
+        // 只能修改自己的密码
+        if (!currentUser.getId().equals(id)) {
+            return ApiResponse.error(403, "只能修改自己的密码");
+        }
+        
+        User existingUser = userService.findById(id);
+        if (existingUser == null) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        // 验证旧密码
+        if (!userService.checkPassword(request.getOldPassword(), existingUser.getPassword())) {
+            return ApiResponse.error("原密码错误");
+        }
+        
+        // 更新密码
+        userService.updatePassword(id, request.getNewPassword());
+        return ApiResponse.success("密码修改成功", null);
+    }
 }

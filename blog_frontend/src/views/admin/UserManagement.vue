@@ -1,14 +1,32 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, onMounted, h } from 'vue'
+import { 
+  NButton, 
+  NDataTable, 
+  NModal, 
+  NForm, 
+  NFormItem, 
+  NInput, 
+  NSelect, 
+  NTag, 
+  NCard,
+  NSpace,
+  useMessage,
+  useDialog,
+  type FormInst,
+  type DataTableColumns
+} from 'naive-ui'
+import { AddOutline, CreateOutline, TrashOutline } from '@vicons/ionicons5'
+
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
-const dialogVisible = ref(false)
+const showModal = ref(false)
 const isEdit = ref(false)
 const currentUserId = ref<number | null>(null)
 
-const userFormRef = ref()
+const userFormRef = ref<FormInst | null>(null)
 const userForm = ref({
   username: '',
   nickname: '',
@@ -27,7 +45,9 @@ const userRules = {
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    // Naive UI doesn't have built-in email validation type, so we use regex or custom validator if needed, 
+    // but for now simple required check is fine, or we can add a regex pattern.
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' } 
   ],
   role: [
     { required: true, message: '请选择用户角色', trigger: 'change' }
@@ -35,6 +55,97 @@ const userRules = {
 }
 
 const users = ref<any[]>([])
+
+const roleOptions = [
+  { label: '普通用户', value: 'user' },
+  { label: '管理员', value: 'admin' }
+]
+
+const columns: DataTableColumns = [
+  {
+    title: 'ID',
+    key: 'id',
+    width: 80
+  },
+  {
+    title: '用户名',
+    key: 'username',
+    minWidth: 120
+  },
+  {
+    title: '昵称',
+    key: 'nickname',
+    minWidth: 120
+  },
+  {
+    title: '邮箱',
+    key: 'email',
+    minWidth: 180
+  },
+  {
+    title: '角色',
+    key: 'role',
+    width: 100,
+    render(row: any) {
+      return h(
+        NTag,
+        { type: getRoleType(row.role) },
+        { default: () => getRoleText(row.role) }
+      )
+    }
+  },
+  {
+    title: '创建时间',
+    key: 'createTime',
+    width: 160,
+    render(row: any) {
+      return formatDate(row.createTime)
+    }
+  },
+  {
+    title: '最后登录',
+    key: 'lastLoginTime',
+    width: 160,
+    render(row: any) {
+      return row.lastLoginTime ? formatDate(row.lastLoginTime) : '从未登录'
+    }
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    render(row: any) {
+      return h(
+        NSpace,
+        { size: 8 },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'primary',
+                secondary: true,
+                onClick: () => showEditDialog(row)
+              },
+              { icon: () => h(CreateOutline), default: () => '编辑' }
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'error',
+                secondary: true,
+                onClick: () => deleteUser(row.id)
+              },
+              { icon: () => h(TrashOutline), default: () => '删除' }
+            )
+          ]
+        }
+      )
+    }
+  }
+]
 
 // 方法
 const fetchUsers = async () => {
@@ -60,7 +171,7 @@ const showCreateDialog = () => {
     email: '',
     role: 'user'
   }
-  dialogVisible.value = true
+  showModal.value = true
 }
 
 const showEditDialog = (user: any) => {
@@ -72,54 +183,54 @@ const showEditDialog = (user: any) => {
     email: user.email,
     role: user.role
   }
-  dialogVisible.value = true
+  showModal.value = true
 }
 
 const submitUser = async () => {
   if (!userFormRef.value) return
   
-  await userFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
+  userFormRef.value.validate(async (errors) => {
+    if (!errors) {
       try {
         const { userApi } = await import('@/api')
         if (isEdit.value && currentUserId.value) {
           await userApi.updateUser(currentUserId.value, userForm.value)
-          ElMessage.success('更新成功')
+          message.success('更新成功')
         } else {
-          ElMessage.warning('暂不支持创建用户，请通过注册页面注册')
+          message.warning('暂不支持创建用户，请通过注册页面注册')
           return
         }
         
-        dialogVisible.value = false
+        showModal.value = false
         fetchUsers()
       } catch (error: any) {
-        ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        message.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
       }
     }
   })
 }
 
 const deleteUser = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这个用户吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    const { userApi } = await import('@/api')
-    await userApi.deleteUser(id)
-    ElMessage.success('删除成功')
-    fetchUsers()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这个用户吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        const { userApi } = await import('@/api')
+        await userApi.deleteUser(id)
+        message.success('删除成功')
+        fetchUsers()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
-  }
+  })
 }
 
 const cancelDialog = () => {
-  dialogVisible.value = false
+  showModal.value = false
 }
 
 const formatDate = (dateString: string) => {
@@ -141,11 +252,11 @@ const getRoleText = (role: string) => {
 const getRoleType = (role: string) => {
   switch (role?.toUpperCase()) {
     case 'ADMIN':
-      return 'danger'
+      return 'error'
     case 'USER':
       return 'success'
     default:
-      return 'info'
+      return 'default'
   }
 }
 
@@ -159,105 +270,65 @@ onMounted(() => {
   <div class="user-management">
     <div class="page-header">
       <h2>用户管理</h2>
-      <el-button type="primary" @click="showCreateDialog">新建用户</el-button>
+      <n-button type="primary" @click="showCreateDialog">
+        <template #icon>
+          <n-icon :component="AddOutline" />
+        </template>
+        新建用户
+      </n-button>
     </div>
     
     <div class="user-table">
-      <el-table
+      <n-data-table
+        :columns="columns"
         :data="users"
-        v-loading="loading"
-        style="width: 100%"
-        border
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        
-        <el-table-column prop="username" label="用户名" min-width="120" />
-        
-        <el-table-column prop="nickname" label="昵称" min-width="120" />
-        
-        <el-table-column prop="email" label="邮箱" min-width="180" />
-        
-        <el-table-column prop="role" label="角色" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getRoleType(row.role)">
-              {{ getRoleText(row.role) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="createTime" label="创建时间" width="160">
-          <template #default="{ row }">
-            {{ formatDate(row.createTime) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="lastLoginTime" label="最后登录" width="160">
-          <template #default="{ row }">
-            {{ row.lastLoginTime ? formatDate(row.lastLoginTime) : '从未登录' }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="150">
-          <template #default="{ row }">
-            <el-button
-              type="success"
-              size="small"
-              :icon="Edit"
-              @click="showEditDialog(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              @click="deleteUser(row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        :loading="loading"
+        :bordered="false"
+        :single-line="false"
+      />
     </div>
     
-    <el-dialog
-      :title="isEdit ? '编辑用户' : '新建用户'"
-      v-model="dialogVisible"
-      width="500px"
-    >
-      <el-form
-        ref="userFormRef"
-        :model="userForm"
-        :rules="userRules"
-        label-width="80px"
+    <n-modal v-model:show="showModal">
+      <n-card
+        style="width: 500px"
+        :title="isEdit ? '编辑用户' : '新建用户'"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" placeholder="请输入用户名" :disabled="isEdit" />
-        </el-form-item>
+        <n-form
+          ref="userFormRef"
+          :model="userForm"
+          :rules="userRules"
+          label-placement="left"
+          label-width="80"
+        >
+          <n-form-item label="用户名" path="username">
+            <n-input v-model:value="userForm.username" placeholder="请输入用户名" :disabled="isEdit" />
+          </n-form-item>
+          
+          <n-form-item label="昵称" path="nickname">
+            <n-input v-model:value="userForm.nickname" placeholder="请输入昵称" />
+          </n-form-item>
+          
+          <n-form-item label="邮箱" path="email">
+            <n-input v-model:value="userForm.email" placeholder="请输入邮箱" />
+          </n-form-item>
+          
+          <n-form-item label="角色" path="role">
+            <n-select v-model:value="userForm.role" :options="roleOptions" placeholder="请选择角色" />
+          </n-form-item>
+        </n-form>
         
-        <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="userForm.nickname" placeholder="请输入昵称" />
-        </el-form-item>
-        
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="userForm.email" placeholder="请输入邮箱" />
-        </el-form-item>
-        
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="userForm.role" placeholder="请选择角色" style="width: 100%">
-            <el-option label="普通用户" value="user" />
-            <el-option label="管理员" value="admin" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="cancelDialog">取消</el-button>
-          <el-button type="primary" @click="submitUser">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="cancelDialog">取消</n-button>
+            <n-button type="primary" @click="submitUser">确定</n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -276,13 +347,12 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
   font-size: 20px;
-  color: #303133;
+  color: var(--n-text-color);
 }
 
 .user-table {
-  background-color: #fff;
+  background-color: var(--n-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 </style>

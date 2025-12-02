@@ -4,17 +4,51 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useCommentStore } from '@/stores/comment'
 import { useUserStore } from '@/stores/user'
-import { Calendar, View, User, PriceTag, Folder, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  NTag, 
+  NIcon, 
+  NButton, 
+  NForm, 
+  NFormItem, 
+  NInput, 
+  NAvatar, 
+  NEmpty, 
+  NSkeleton,
+  useMessage,
+  useDialog,
+  NDivider,
+  NDropdown,
+  type FormInst
+} from 'naive-ui'
+import { 
+  CalendarOutline, 
+  PersonOutline, 
+  EyeOutline, 
+  FolderOutline, 
+  PricetagOutline, 
+  CreateOutline, 
+  TrashOutline,
+  HeartOutline,
+  ChatbubbleOutline,
+  ShareSocialOutline,
+  BookmarkOutline,
+  EllipsisHorizontal
+} from '@vicons/ionicons5'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
+import ReadingProgress from '@/components/ReadingProgress.vue'
+import TableOfContents from '@/components/TableOfContents.vue'
+import BackTop from '@/components/BackTop.vue'
+import ShareButton from '@/components/ShareButton.vue'
 
 const route = useRoute()
 const router = useRouter()
 const postStore = usePostStore()
 const commentStore = useCommentStore()
 const userStore = useUserStore()
+const message = useMessage()
+const dialog = useDialog()
 
 const postId = computed(() => Number(route.params.id))
 const post = computed(() => postStore.currentPost)
@@ -23,10 +57,10 @@ const isLoggedIn = computed(() => userStore.isLoggedIn)
 const isAdmin = computed(() => userStore.isAdmin)
 
 const loading = ref(false)
-const commentLoading = ref(false)
+
 const submittingComment = ref(false)
 const showCommentForm = ref(false)
-const commentFormRef = ref()
+const commentFormRef = ref<FormInst | null>(null)
 
 const commentForm = ref({
   content: ''
@@ -35,12 +69,15 @@ const commentForm = ref({
 const commentRules = {
   content: [
     { required: true, message: '请输入评论内容', trigger: 'blur' },
-    { min: 5, max: 500, message: '长度在 5 到 500 个字符', trigger: 'blur' }
+    { min: 5, max: 500, message: '长度应在 5 到 500 个字符之间', trigger: 'blur' }
   ]
 }
 
-// 初始化Markdown渲染器
+// Initialize Markdown renderer
 const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true,
   highlight: function (str: string, lang: string) {
     if (lang && hljs.getLanguage(lang)) {
       try {
@@ -51,25 +88,23 @@ const md = new MarkdownIt({
   }
 })
 
-// 计算渲染后的HTML内容
+// Compute rendered HTML content
 const renderedContent = computed(() => {
   return post.value ? md.render(post.value.content) : ''
 })
 
-// 方法
+// Methods
 const fetchPost = async () => {
   try {
     loading.value = true
     await postStore.fetchPostById(postId.value)
     
-    // 只有成功获取文章后才获取评论
     if (postStore.currentPost) {
       await commentStore.fetchCommentsByPostId(postId.value)
     }
   } catch (error: any) {
-    console.error('获取文章详情失败:', error)
-    ElMessage.error(error.message || '获取文章详情失败')
-    // 延迟跳转，让用户看到错误信息
+    console.error('获取文章失败:', error)
+    message.error(error.message || '获取文章失败')
     setTimeout(() => {
       router.push('/')
     }, 1500)
@@ -80,7 +115,7 @@ const fetchPost = async () => {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const goToCategory = (id: number) => {
@@ -96,44 +131,43 @@ const editPost = () => {
 }
 
 const deletePost = async () => {
-  try {
-    await ElMessageBox.confirm('确定要删除这篇文章吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await postStore.deletePost(postId.value)
-    ElMessage.success('删除成功')
-    router.push('/')
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '删除文章',
+    content: '确定要删除这篇文章吗？',
+    positiveText: '删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await postStore.deletePost(postId.value)
+        message.success('删除成功')
+        router.push('/')
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
-  }
+  })
 }
 
 const toggleCommentForm = () => {
   showCommentForm.value = !showCommentForm.value
 }
 
-const submitComment = async () => {
-  if (!commentFormRef.value) return
-  
-  await commentFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
+const submitComment = (e: MouseEvent) => {
+  e.preventDefault()
+  commentFormRef.value?.validate(async (errors) => {
+    if (!errors) {
       try {
         submittingComment.value = true
         await commentStore.createComment({
           postId: postId.value,
           content: commentForm.value.content
         })
-        ElMessage.success('评论成功')
+        message.success('评论已发布')
         commentForm.value.content = ''
         showCommentForm.value = false
         await commentStore.fetchCommentsByPostId(postId.value)
       } catch (error: any) {
-        ElMessage.error(error.message || '评论失败')
+        message.error(error.message || '评论发布失败')
       } finally {
         submittingComment.value = false
       }
@@ -142,395 +176,539 @@ const submitComment = async () => {
 }
 
 const deleteComment = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await commentStore.deleteComment(id)
-    ElMessage.success('删除成功')
-    await commentStore.fetchCommentsByPostId(postId.value)
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '删除评论',
+    content: '确定要删除这条评论吗？',
+    positiveText: '删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await commentStore.deleteComment(id)
+        message.success('删除成功')
+        await commentStore.fetchCommentsByPostId(postId.value)
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
+  })
+}
+
+const liking = ref(false)
+const handleLike = async () => {
+  if (liking.value) return
+  
+  try {
+    liking.value = true
+    await postStore.likePost(postId.value)
+    message.success('点赞成功')
+    if (post.value) {
+      post.value.likeCount = (post.value.likeCount || 0) + 1
+    }
+  } catch (error: any) {
+    message.error(error.message || '点赞失败')
+  } finally {
+    liking.value = false
   }
 }
 
-// 初始化
 onMounted(() => {
   fetchPost()
 })
 </script>
 
 <template>
-  <div class="post-detail" v-loading="loading">
-    <div v-if="post" class="post-container">
-      <div class="post-header">
-        <h1 class="post-title">{{ post.title }}</h1>
-        
-        <div class="post-meta">
-          <span class="meta-item">
-            <el-icon><Calendar /></el-icon>
-            {{ formatDate(post.createTime) }}
-          </span>
-          <span class="meta-item">
-            <el-icon><User /></el-icon>
-            {{ post.author?.nickname || post.author?.username || '匿名' }}
-          </span>
-          <span class="meta-item">
-            <el-icon><View /></el-icon>
-            {{ post.viewCount }} 次浏览
-          </span>
+  <reading-progress />
+  <div class="article-page">
+    <div v-if="loading" class="loading-container">
+      <n-skeleton text style="width: 60%; height: 48px; margin-bottom: 24px" />
+      <div class="meta-skeleton">
+        <n-skeleton circle width="48px" height="48px" />
+        <div class="meta-text">
+          <n-skeleton text width="120px" />
+          <n-skeleton text width="80px" />
+        </div>
+      </div>
+      <n-skeleton text :repeat="10" style="margin-top: 40px" />
+    </div>
+    
+    <div v-else-if="post" class="article-layout">
+      <article class="article-content">
+      <h1 class="article-title serif">{{ post.title }}</h1>
+      
+      <div class="article-meta">
+        <div class="author-info">
+          <n-avatar 
+            round 
+            size="medium" 
+            :src="post.author?.avatar"
+            :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+          />
+          <div class="author-details">
+            <div class="author-name">{{ post.author?.nickname || post.author?.username || '匿名用户' }}</div>
+            <div class="publish-info">
+              <span>{{ formatDate(post.createTime) }}</span>
+              <span class="dot">·</span>
+              <span>{{ Math.ceil(post.content.length / 500) }} 分钟阅读</span>
+            </div>
+          </div>
         </div>
         
-        <div class="post-tags">
-          <span v-if="post.category" class="category-tag" @click="goToCategory(post.category.id)">
-            <el-icon><Folder /></el-icon>
-            {{ post.category.name }}
-          </span>
-          <span 
-            class="tag-item" 
-            v-for="tag in post.tags" 
-            :key="tag.id"
-            @click="goToTag(tag.id)"
-          >
-            <el-icon><PriceTag /></el-icon>
-            {{ tag.name }}
-          </span>
-        </div>
-        
-        <div class="post-actions" v-if="isAdmin">
-          <el-button type="primary" :icon="Edit" @click="editPost">编辑</el-button>
-          <el-button type="danger" :icon="Delete" @click="deletePost">删除</el-button>
+        <div class="article-actions">
+          <share-button :title="post.title" />
+          
+          <n-button quaternary circle>
+            <template #icon>
+              <n-icon :component="BookmarkOutline" />
+            </template>
+          </n-button>
+          
+          <n-dropdown v-if="isAdmin" trigger="click" :options="[
+            { label: '编辑', key: 'edit' },
+            { label: '删除', key: 'delete' }
+          ]" @select="(key) => key === 'edit' ? editPost() : deletePost()">
+            <n-button quaternary circle>
+              <template #icon>
+                <n-icon :component="CreateOutline" />
+              </template>
+            </n-button>
+          </n-dropdown>
         </div>
       </div>
       
-      <div class="post-content">
-        <div v-html="renderedContent" class="markdown-body"></div>
+      <n-divider />
+      
+      <div class="markdown-body serif" v-html="renderedContent"></div>
+      
+      <div class="article-tags">
+        <n-tag 
+          v-if="post.category" 
+          round 
+          :bordered="false" 
+          class="tag-pill" 
+          @click="goToCategory(post.category.id)"
+        >
+          {{ post.category.name }}
+        </n-tag>
+        
+        <n-tag 
+          v-for="tag in post.tags" 
+          :key="tag.id"
+          round
+          :bordered="false"
+          class="tag-pill"
+          @click="goToTag(tag.id)"
+        >
+          {{ tag.name }}
+        </n-tag>
       </div>
       
-      <div class="post-comments">
+      <div class="interaction-bar">
+        <div class="left">
+          <n-button quaternary class="action-btn" @click="handleLike" :loading="liking">
+            <template #icon>
+              <n-icon :component="HeartOutline" />
+            </template>
+            {{ post.likeCount || 0 }}
+          </n-button>
+          <n-button quaternary class="action-btn" @click="toggleCommentForm">
+            <template #icon>
+              <n-icon :component="ChatbubbleOutline" />
+            </template>
+            {{ comments.length }}
+          </n-button>
+          <n-button quaternary class="action-btn">
+            <template #icon>
+              <n-icon :component="EyeOutline" />
+            </template>
+            {{ post.viewCount || 0 }}
+          </n-button>
+        </div>
+        <div class="right">
+          <share-button :title="post.title" />
+          <n-button quaternary circle>
+            <template #icon>
+              <n-icon :component="BookmarkOutline" />
+            </template>
+          </n-button>
+        </div>
+      </div>
+      
+      <div class="comments-section" id="comments">
         <h3>评论 ({{ comments.length }})</h3>
         
-        <div class="comment-form-toggle" v-if="isLoggedIn">
-          <el-button @click="toggleCommentForm">
-            {{ showCommentForm ? '取消评论' : '发表评论' }}
-          </el-button>
-        </div>
-        
-        <div class="comment-form" v-if="showCommentForm && isLoggedIn">
-          <el-form
-            ref="commentFormRef"
-            :model="commentForm"
-            :rules="commentRules"
-            label-width="0"
-          >
-            <el-form-item prop="content">
-              <el-input
-                v-model="commentForm.content"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入评论内容..."
-              />
-            </el-form-item>
-            
-            <el-form-item>
-              <el-button
-                type="primary"
-                :loading="submittingComment"
-                @click="submitComment"
-              >
-                提交评论
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-        
-        <div class="comment-list" v-loading="commentLoading">
-          <div v-if="comments.length === 0" class="empty-comments">
-            <el-empty description="暂无评论" />
+        <div class="comment-form-container" v-if="isLoggedIn">
+          <div class="user-avatar-small">
+            <n-avatar 
+              round 
+              size="small" 
+              :src="userStore.userInfo?.avatar"
+              :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+            />
           </div>
-          
-          <div v-else class="comment-item" v-for="comment in comments" :key="comment.id">
-            <div class="comment-header">
-              <div class="comment-user">
-                <el-avatar :size="32" :src="comment.user?.avatar">
-                  {{ comment.user?.nickname ? comment.user.nickname.charAt(0) : 'U' }}
-                </el-avatar>
-                <span class="username">{{ comment.user?.nickname || comment.user?.username || '匿名' }}</span>
+          <div class="form-wrapper">
+             <n-input
+                v-model:value="commentForm.content"
+                type="textarea"
+                :rows="3"
+                placeholder="写下你的想法..."
+                :bordered="false"
+                class="comment-input"
+              />
+              <div class="form-actions">
+                <n-button 
+                  size="small" 
+                  type="primary" 
+                  round 
+                  color="#1a8917" 
+                  :disabled="!commentForm.content.trim()"
+                  :loading="submittingComment"
+                  @click="submitComment"
+                >
+                  发布
+                </n-button>
               </div>
-              <div class="comment-time">{{ formatDate(comment.createTime) }}</div>
+          </div>
+        </div>
+        <div v-else class="login-prompt">
+          <n-button quaternary type="primary" @click="router.push('/login')">登录后发表评论</n-button>
+        </div>
+        
+        <div class="comment-list">
+          <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <div class="comment-header">
+              <div class="comment-author">
+                <n-avatar 
+                  round 
+                  size="small" 
+                  :src="comment.user?.avatar"
+                  :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+                />
+                <div class="comment-meta">
+                  <span class="name">{{ comment.user?.nickname || comment.user?.username || '匿名用户' }}</span>
+                  <span class="time">{{ formatDate(comment.createTime) }}</span>
+                </div>
+              </div>
+              
+              <n-dropdown 
+                v-if="isAdmin || (isLoggedIn && userStore.userInfo?.id === comment.user?.id)"
+                trigger="click" 
+                :options="[{ label: '删除', key: 'delete' }]" 
+                @select="() => deleteComment(comment.id)"
+              >
+                <n-button quaternary circle size="tiny">
+                  <template #icon>
+                    <n-icon :component="EllipsisHorizontal" />
+                  </template>
+                </n-button>
+              </n-dropdown>
             </div>
             
-            <div class="comment-content">{{ comment.content }}</div>
-            
-            <div class="comment-actions" v-if="isAdmin || (isLoggedIn && userStore.userInfo?.id === comment.user?.id)">
-              <el-button type="danger" size="small" @click="deleteComment(comment.id)">删除</el-button>
+            <div class="comment-body serif">
+              {{ comment.content }}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </article>
+    
+    <aside class="article-sidebar">
+      <table-of-contents />
+    </aside>
   </div>
+  </div>
+  <back-top />
 </template>
 
 <style scoped>
-.post-detail {
-  width: 100%;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
-.post-container {
-  max-width: 800px;
+.article-page {
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 24px 32px 60px;
+  min-height: 100vh;
 }
 
-.post-header {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.post-title {
-  font-size: 28px;
-  margin-bottom: 15px;
-  color: #303133;
-}
-
-.post-meta {
+.article-layout {
   display: flex;
-  margin-bottom: 15px;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.loading-container, .article-content {
+  flex: 1;
+  max-width: 900px;
+}
+
+.article-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .article-sidebar {
+    display: block;
+  }
+}
+
+.meta-skeleton {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.article-title {
+  font-size: 40px;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  font-weight: 700;
+  color: var(--text-color);
+  letter-spacing: -0.5px;
+}
+
+.article-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.author-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
   font-size: 14px;
-  color: #909399;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
-.meta-item {
+.publish-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.dot {
+  margin: 0 4px;
+}
+
+.article-actions {
   display: flex;
-  align-items: center;
-  margin-right: 20px;
-}
-
-.meta-item .el-icon {
-  margin-right: 5px;
-}
-
-.post-tags {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 15px;
-}
-
-.category-tag, .tag-item {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  background-color: #f0f2f5;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #606266;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.category-tag:hover, .tag-item:hover {
-  background-color: #e6f7ff;
-  color: #409eff;
-}
-
-.category-tag {
-  background-color: #e6f7ff;
-  color: #409eff;
-}
-
-.category-tag .el-icon, .tag-item .el-icon {
-  margin-right: 4px;
-}
-
-.post-actions {
-  margin-top: 15px;
-}
-
-.post-content {
-  margin-bottom: 40px;
-  line-height: 1.8;
 }
 
 .markdown-body {
   font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-color);
+  margin-top: 32px;
+  margin-bottom: 48px;
 }
 
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4,
-.markdown-body h5,
-.markdown-body h6 {
-  margin-top: 24px;
+.markdown-body :deep(p) {
   margin-bottom: 16px;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3) {
   font-weight: 600;
-  line-height: 1.25;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  color: var(--text-color);
 }
 
-.markdown-body h1 {
-  font-size: 2em;
-  border-bottom: 1px solid #eaecef;
-  padding-bottom: 0.3em;
+.markdown-body :deep(h1) {
+  font-size: 32px;
 }
 
-.markdown-body h2 {
-  font-size: 1.5em;
-  border-bottom: 1px solid #eaecef;
-  padding-bottom: 0.3em;
+.markdown-body :deep(h2) {
+  font-size: 24px;
 }
 
-.markdown-body h3 {
-  font-size: 1.25em;
-}
-
-.markdown-body p {
-  margin-bottom: 16px;
-}
-
-.markdown-body code {
-  padding: 0.2em 0.4em;
-  margin: 0;
-  font-size: 85%;
-  background-color: rgba(27, 31, 35, 0.05);
-  border-radius: 3px;
-}
-
-.markdown-body pre {
-  padding: 16px;
-  overflow: auto;
-  font-size: 85%;
-  line-height: 1.45;
-  background-color: #f6f8fa;
-  border-radius: 6px;
-  margin-bottom: 16px;
-}
-
-.markdown-body pre code {
-  display: inline;
-  max-width: auto;
-  padding: 0;
-  margin: 0;
-  overflow: visible;
-  line-height: inherit;
-  word-wrap: normal;
-  background-color: transparent;
-  border: 0;
-}
-
-.markdown-body blockquote {
-  padding: 0 1em;
-  color: #6a737d;
-  border-left: 0.25em solid #dfe2e5;
-  margin-bottom: 16px;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-  padding-left: 2em;
-  margin-bottom: 16px;
-}
-
-.markdown-body li {
-  margin-bottom: 0.25em;
-}
-
-.markdown-body table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.markdown-body table th,
-.markdown-body table td {
-  padding: 6px 13px;
-  border: 1px solid #dfe2e5;
-}
-
-.markdown-body table th {
-  background-color: #f6f8fa;
-  font-weight: 600;
-}
-
-.post-comments {
-  border-top: 1px solid #e4e7ed;
-  padding-top: 20px;
-}
-
-.post-comments h3 {
-  margin-bottom: 20px;
+.markdown-body :deep(h3) {
   font-size: 20px;
-  color: #303133;
 }
 
-.comment-form-toggle {
-  margin-bottom: 20px;
+.markdown-body :deep(blockquote) {
+  border-left: 3px solid var(--border-color);
+  padding-left: 16px;
+  margin: 16px 0;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
-.comment-form {
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #f9f9f9;
+.markdown-body :deep(img) {
+  max-width: 100%;
+  height: auto;
+  margin: 24px 0;
+  border-radius: 6px;
+}
+
+.markdown-body :deep(pre) {
+  background-color: var(--bg-secondary);
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 14px;
+  font-family: var(--font-mono);
+  margin: 16px 0;
+  border: 1px solid var(--border-color);
+}
+
+.markdown-body :deep(code) {
+  background-color: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: var(--font-mono);
+}
+
+.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.tag-pill {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.tag-pill:hover {
+  background-color: var(--bg-hover);
+  transform: translateY(-1px);
+}
+
+.interaction-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 40px;
+}
+
+.left, .right {
+  display: flex;
+  gap: 16px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comments-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-color);
+}
+
+.comment-form-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 16px;
+  background-color: var(--bg-secondary);
   border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
-.comment-list {
-  margin-top: 20px;
+.form-wrapper {
+  flex: 1;
+}
+
+.comment-input {
+  margin-bottom: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .comment-item {
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.comment-item:last-child {
-  border-bottom: none;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .comment-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.comment-user {
+.comment-author {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-.username {
-  margin-left: 10px;
+.comment-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-meta .name {
+  font-size: 14px;
   font-weight: 500;
+  color: var(--text-color);
 }
 
-.comment-time {
+.comment-meta .time {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-tertiary);
 }
 
-.comment-content {
-  margin-bottom: 10px;
+.comment-body {
+  font-size: 14px;
   line-height: 1.6;
+  color: var(--text-color);
+  margin-left: 40px;
 }
 
-.comment-actions {
-  text-align: right;
-}
-
-.empty-comments {
-  padding: 20px 0;
+.login-prompt {
   text-align: center;
+  padding: 32px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  margin-bottom: 32px;
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .article-page {
+    padding: 24px 16px 60px;
+  }
+
+  .article-layout {
+    flex-direction: column;
+  }
+
+  .article-title {
+    font-size: 28px;
+  }
+
+  .markdown-body {
+    font-size: 15px;
+  }
+
+  .article-content {
+    max-width: 100%;
+  }
 }
 </style>

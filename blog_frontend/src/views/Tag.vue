@@ -3,7 +3,20 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useTagStore } from '@/stores/category'
-import { Calendar, View, User, PriceTag, Folder } from '@element-plus/icons-vue'
+import { 
+  NCard, 
+  NIcon, 
+  NEmpty, 
+  NTag, 
+  NSkeleton 
+} from 'naive-ui'
+import { 
+  PricetagOutline, 
+  CalendarOutline, 
+  PersonOutline, 
+  EyeOutline, 
+  FolderOutline 
+} from '@vicons/ionicons5'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,150 +71,186 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="tag-page" v-loading="loading">
+  <div class="tag-page">
     <div class="page-header">
-      <h1>
-        <el-icon><PriceTag /></el-icon>
-        标签: {{ tag?.name || '加载中...' }}
-      </h1>
+      <div class="header-icon">
+        <n-icon :component="PricetagOutline" :size="32" />
+      </div>
+      <div class="header-content">
+        <h1 class="page-title">{{ tag?.name || '加载中...' }}</h1>
+      </div>
     </div>
     
-    <div class="post-list">
-      <div v-if="posts.length === 0" class="empty-state">
-        <el-empty description="该标签下暂无文章" />
-      </div>
-      
-      <div v-else class="post-item" v-for="post in posts" :key="post.id" @click="goToPostDetail(post.id)">
-        <h2 class="post-title">{{ post.title }}</h2>
-        
-        <div class="post-meta">
-          <span class="meta-item">
-            <el-icon><Calendar /></el-icon>
-            {{ formatDate(post.createTime) }}
-          </span>
-          <span class="meta-item">
-            <el-icon><User /></el-icon>
-            {{ post.author?.nickname || post.author?.username || '匿名' }}
-          </span>
-          <span class="meta-item">
-            <el-icon><View /></el-icon>
-            {{ post.viewCount }} 次浏览
-          </span>
+    <div class="posts-container">
+      <template v-if="loading">
+        <div v-for="i in 3" :key="i" class="post-card skeleton">
+          <n-skeleton text style="width: 60%; height: 28px; margin-bottom: 12px" />
+          <n-skeleton text :repeat="2" style="margin-bottom: 12px" />
+          <n-skeleton text style="width: 40%" />
+        </div>
+      </template>
+
+      <template v-else>
+        <div v-if="posts.length === 0" class="empty-state">
+          <n-empty description="该标签下暂无文章" size="large" />
         </div>
         
-        <div class="post-summary">
-          {{ truncateContent(post.summary || post.content) }}
+        <div 
+          v-else 
+          v-for="post in posts" 
+          :key="post.id" 
+          class="post-card"
+          @click="goToPostDetail(post.id)"
+        >
+          <h2 class="post-title">{{ post.title }}</h2>
+          <p class="post-summary">{{ truncateContent(post.summary || post.content) }}</p>
+          
+          <div class="post-footer">
+            <div class="post-meta">
+              <n-icon :component="CalendarOutline" :size="14" />
+              <span>{{ formatDate(post.createTime) }}</span>
+              <span class="dot">·</span>
+              <span>{{ post.author?.nickname || post.author?.username || '匿名' }}</span>
+              <span v-if="post.category" class="category-badge">{{ post.category.name }}</span>
+            </div>
+          </div>
         </div>
-        
-        <div class="post-tags">
-          <span v-if="post.category" class="category-tag" @click.stop="goToCategory(post.category.id)">
-            <el-icon><Folder /></el-icon>
-            {{ post.category.name }}
-          </span>
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
 
 <style scoped>
 .tag-page {
-  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  min-height: 100vh;
 }
 
 .page-header {
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.page-header h1 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 24px;
-  color: #303133;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-color);
   margin: 0;
 }
 
-.post-list {
-  margin-bottom: 20px;
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.post-item {
-  padding: 20px;
-  margin-bottom: 20px;
-  background-color: #fff;
+.post-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 24px;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: all 0.15s ease;
 }
 
-.post-item:hover {
+.post-card:hover {
+  box-shadow: 0 4px 12px var(--shadow-sm);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+  border-color: var(--text-tertiary);
+}
+
+.post-card.skeleton {
+  cursor: default;
+}
+
+.post-card.skeleton:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .post-title {
-  font-size: 22px;
-  margin-bottom: 10px;
-  color: #303133;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.post-summary {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .post-meta {
   display: flex;
-  margin-bottom: 15px;
-  font-size: 14px;
-  color: #909399;
-}
-
-.meta-item {
-  display: flex;
   align-items: center;
-  margin-right: 20px;
-}
-
-.meta-item .el-icon {
-  margin-right: 5px;
-}
-
-.post-summary {
-  margin-bottom: 15px;
-  line-height: 1.6;
-  color: #606266;
-}
-
-.post-tags {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary);
 }
 
-.category-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  background-color: #e6f7ff;
+.dot {
+  margin: 0 4px;
+}
+
+.category-badge {
+  padding: 2px 8px;
+  background-color: var(--bg-secondary);
   border-radius: 4px;
   font-size: 12px;
-  color: #409eff;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.category-tag:hover {
-  background-color: #bae7ff;
-}
-
-.category-tag .el-icon {
-  margin-right: 4px;
+  color: var(--text-secondary);
 }
 
 .empty-state {
-  padding: 40px 0;
+  padding: 80px 0;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .tag-page {
+    padding: 24px 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .post-card {
+    padding: 16px;
+  }
+
+  .post-title {
+    font-size: 18px;
+  }
 }
 </style>

@@ -1,16 +1,133 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Check, Close, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, onMounted, h } from 'vue'
 import { commentApi } from '@/api'
+import { 
+  NButton, 
+  NDataTable, 
+  NPagination, 
+  NSelect, 
+  NTag, 
+  NSpace,
+  useMessage,
+  useDialog,
+  type DataTableColumns
+} from 'naive-ui'
+import { CheckmarkOutline, CloseOutline, TrashOutline } from '@vicons/ionicons5'
+
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
-const statusFilter = ref<number | undefined>(undefined)
+const statusFilter = ref<number | null>(null)
 
 const comments = ref<any[]>([])
 const total = ref(0)
+
+const statusOptions = [
+  { label: '全部', value: 'all' },
+  { label: '待审核', value: 0 },
+  { label: '已通过', value: 1 },
+  { label: '已拒绝', value: 2 }
+]
+
+const columns: DataTableColumns = [
+  {
+    title: 'ID',
+    key: 'id',
+    width: 80
+  },
+  {
+    title: '评论内容',
+    key: 'content',
+    minWidth: 200,
+    ellipsis: {
+      tooltip: true
+    }
+  },
+  {
+    title: '文章ID',
+    key: 'postId',
+    width: 100
+  },
+  {
+    title: '用户',
+    key: 'user',
+    width: 120,
+    render(row: any) {
+      return row.user?.nickname || row.user?.username || '未知'
+    }
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 100,
+    render(row: any) {
+      return h(
+        NTag,
+        { type: getStatusType(row.status) },
+        { default: () => getStatusText(row.status) }
+      )
+    }
+  },
+  {
+    title: '创建时间',
+    key: 'createTime',
+    width: 160,
+    render(row: any) {
+      return formatDate(row.createTime)
+    }
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 200,
+    render(row: any) {
+      const actions = []
+      
+      if (row.status === 0) {
+        actions.push(
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'success',
+              secondary: true,
+              onClick: () => approveComment(row.id)
+            },
+            { icon: () => h(CheckmarkOutline), default: () => '通过' }
+          ),
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'warning',
+              secondary: true,
+              onClick: () => rejectComment(row.id)
+            },
+            { icon: () => h(CloseOutline), default: () => '拒绝' }
+          )
+        )
+      }
+      
+      actions.push(
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'error',
+            secondary: true,
+            onClick: () => deleteComment(row.id)
+          },
+          { icon: () => h(TrashOutline), default: () => '删除' }
+        )
+      )
+      
+      return h(NSpace, { size: 8 }, { default: () => actions })
+    }
+  }
+]
 
 // 方法
 const fetchComments = async () => {
@@ -19,7 +136,7 @@ const fetchComments = async () => {
     const res = await commentApi.getAdminComments({
       page: currentPage.value,
       size: pageSize.value,
-      status: statusFilter.value
+      status: statusFilter.value === null ? undefined : statusFilter.value
     })
     if (res.data) {
       comments.value = res.data.records || []
@@ -34,15 +151,11 @@ const fetchComments = async () => {
   }
 }
 
-const handleStatusChange = (val: string) => {
+const handleStatusChange = (val: any) => {
   if (val === 'all') {
-    statusFilter.value = undefined
-  } else if (val === 'pending') {
-    statusFilter.value = 0
-  } else if (val === 'approved') {
-    statusFilter.value = 1
-  } else if (val === 'rejected') {
-    statusFilter.value = 2
+    statusFilter.value = null
+  } else {
+    statusFilter.value = val
   }
   currentPage.value = 1
   fetchComments()
@@ -56,39 +169,39 @@ const handlePageChange = (page: number) => {
 const approveComment = async (id: number) => {
   try {
     await commentApi.approveComment(id)
-    ElMessage.success('审核通过')
+    message.success('审核通过')
     fetchComments()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 const rejectComment = async (id: number) => {
   try {
     await commentApi.rejectComment(id)
-    ElMessage.success('审核拒绝')
+    message.success('审核拒绝')
     fetchComments()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 const deleteComment = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await commentApi.deleteComment(id)
-    ElMessage.success('删除成功')
-    fetchComments()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这条评论吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await commentApi.deleteComment(id)
+        message.success('删除成功')
+        fetchComments()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
-  }
+  })
 }
 
 const formatDate = (dateString: string) => {
@@ -116,9 +229,9 @@ const getStatusType = (status: number) => {
     case 1:
       return 'success'
     case 2:
-      return 'danger'
+      return 'error'
     default:
-      return 'info'
+      return 'default'
   }
 }
 
@@ -132,95 +245,29 @@ onMounted(() => {
   <div class="comment-management">
     <div class="page-header">
       <h2>评论管理</h2>
-      <el-select placeholder="筛选状态" style="width: 120px" @change="handleStatusChange">
-        <el-option label="全部" value="all" />
-        <el-option label="待审核" value="pending" />
-        <el-option label="已通过" value="approved" />
-        <el-option label="已拒绝" value="rejected" />
-      </el-select>
+      <n-select
+        placeholder="筛选状态"
+        style="width: 120px"
+        :options="statusOptions"
+        @update:value="handleStatusChange"
+      />
     </div>
     
     <div class="comment-table">
-      <el-table
+      <n-data-table
+        :columns="columns"
         :data="comments"
-        v-loading="loading"
-        style="width: 100%"
-        border
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        
-        <el-table-column prop="content" label="评论内容" min-width="200">
-          <template #default="{ row }">
-            <div class="comment-content">{{ row.content }}</div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="文章ID" width="100">
-          <template #default="{ row }">
-            {{ row.postId }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="用户" width="120">
-          <template #default="{ row }">
-            {{ row.user?.nickname || row.user?.username || '未知' }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="createTime" label="创建时间" width="160">
-          <template #default="{ row }">
-            {{ formatDate(row.createTime) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="200">
-          <template #default="{ row }">
-            <el-button
-              v-if="row.status === 0"
-              type="success"
-              size="small"
-              :icon="Check"
-              @click="approveComment(row.id)"
-            >
-              通过
-            </el-button>
-            <el-button
-              v-if="row.status === 0"
-              type="warning"
-              size="small"
-              :icon="Close"
-              @click="rejectComment(row.id)"
-            >
-              拒绝
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              @click="deleteComment(row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        :loading="loading"
+        :bordered="false"
+        :single-line="false"
+      />
       
       <div class="pagination">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :total="total"
+        <n-pagination
+          v-model:page="currentPage"
+          :page-count="Math.ceil(total / pageSize)"
           :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
+          @update:page="handlePageChange"
         />
       </div>
     </div>
@@ -242,23 +289,13 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
   font-size: 20px;
-  color: #303133;
+  color: var(--n-text-color);
 }
 
 .comment-table {
-  background-color: #fff;
+  background-color: var(--n-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   padding: 20px;
-}
-
-.comment-content {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .pagination {

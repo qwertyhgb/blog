@@ -5,18 +5,83 @@
 }
 
 :root {
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  line-height: 1.5;
+  /* Notion-style Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+  font-family: var(--font-sans);
+  line-height: 1.6;
   font-weight: 400;
-  color: #333;
-  background-color: #f5f5f5;
+
+  /* Notion-style Colors - Light Mode */
+  --bg-color: #ffffff;
+  --bg-secondary: #f7f6f3;
+  --bg-hover: rgba(55, 53, 47, 0.08);
+  --text-color: #37352f;
+  --text-secondary: rgba(55, 53, 47, 0.65);
+  --text-tertiary: rgba(55, 53, 47, 0.45);
+  --border-color: rgba(55, 53, 47, 0.16);
+  --primary-color: #2383e2;
+  --primary-hover: #1a6dc4;
+  --sidebar-bg: #f7f6f3;
+  --card-bg: #ffffff;
+  --shadow-sm: rgba(15, 15, 15, 0.05);
+  --shadow-md: rgba(15, 15, 15, 0.1);
+
+  color: var(--text-color);
+  background-color: var(--bg-color);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+/* Dark Mode - Enhanced */
+html.dark {
+  color-scheme: dark;
+  --bg-color: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-hover: rgba(255, 255, 255, 0.08);
+  --text-color: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --primary-color: #4a9eff;
+  --primary-hover: #6bb0ff;
+  --sidebar-bg: #1a1a1a;
+  --card-bg: #161616;
+  --shadow-sm: rgba(0, 0, 0, 0.4);
+  --shadow-md: rgba(0, 0, 0, 0.6);
+}
+
+/* Dark Mode - Additional Enhancements */
+html.dark body {
+  background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html.dark a:hover {
+  opacity: 0.8;
+}
+
+/* Dark Mode - Selection */
+html.dark ::selection {
+  background-color: rgba(74, 158, 255, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+html,
+body {
   width: 100%;
   min-height: 100vh;
 }
@@ -24,15 +89,25 @@ html, body {
 body {
   margin: 0;
   min-width: 320px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1.3;
 }
 
 a {
-  color: #409eff;
+  color: inherit;
   text-decoration: none;
+  transition: opacity 0.15s ease;
 }
 
 a:hover {
-  color: #66b1ff;
+  opacity: 0.7;
 }
 
 #app {
@@ -40,32 +115,426 @@ a:hover {
   min-height: 100vh;
 }
 
-/* 滚动条样式 */
+/* Notion-style Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: rgba(55, 53, 47, 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgba(55, 53, 47, 0.5);
 }
 
-/* 暗色模式 */
-html.dark {
-  color-scheme: dark;
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
 }
 
-html.dark body {
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 158, 255, 0.4);
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Utility classes */
+.notion-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.notion-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Hover Glow Effect */
+button:hover,
+.n-button:hover {
+  filter: brightness(1.05);
+}
+
+/* Link Hover Effect */
+a {
+  position: relative;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+/* Card Shine Effect */
+.card,
+.post-card,
+.category-card,
+.tag-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after,
+.post-card::after,
+.category-card::after,
+.tag-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  transition: transform 0.6s ease;
+}
+
+.card:hover::after,
+.post-card:hover::after,
+.category-card:hover::after,
+.tag-card:hover::after {
+  transform: translateX(100%) translateY(100%) rotate(45deg);
+}
+
+/* Ripple Effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shake Animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Gradient Animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus Visible */
+*:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Rotate Animation */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate 20s linear infinite;
+}
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Scale In */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Slide In Left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+/* Slide In Right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Glow Effect */
+.glow {
+  box-shadow: 0 0 20px var(--primary-color);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--primary-color);
+  }
+  50% {
+    box-shadow: 0 0 30px var(--primary-color), 0 0 40px var(--primary-color);
+  }
+}
+
+/* Text Gradient Animation */
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    var(--primary-hover),
+    var(--primary-color)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* Particle Effect */
+@keyframes particle {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Typing Effect */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.typing-effect {
+  overflow: hidden;
+  border-right: 2px solid var(--primary-color);
+  white-space: nowrap;
+  animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+}
+
+/* Dark Mode - Image Optimization */
+html.dark img {
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+html.dark img:hover {
+  opacity: 1;
+}
+
+/* Dark Mode - Code Blocks */
+html.dark pre,
+html.dark code {
   background-color: #1a1a1a;
-  color: #e5e5e5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark Mode - Blockquotes */
+html.dark blockquote {
+  border-left-color: rgba(74, 158, 255, 0.4);
+  background-color: rgba(74, 158, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Dark Mode - Tables */
+html.dark table {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark th {
+  background-color: #1a1a1a;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+html.dark td {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Dark Mode - Shadows Enhancement */
+html.dark .card,
+html.dark .post-card,
+html.dark .stat-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .card:hover,
+html.dark .post-card:hover,
+html.dark .stat-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* Dark Mode - Input Focus Glow */
+html.dark input:focus,
+html.dark textarea:focus {
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+}
+
+/* Dark Mode - Button Glow */
+html.dark button[type="primary"]:hover {
+  box-shadow: 0 4px 16px rgba(74, 158, 255, 0.4);
+}
+
+/* Dark Mode - Divider */
+html.dark hr {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
 }

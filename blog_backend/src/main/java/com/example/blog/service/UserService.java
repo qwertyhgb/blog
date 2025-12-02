@@ -89,4 +89,18 @@ public class UserService implements UserDetailsService {
     public void deleteById(Long id) {
         userMapper.deleteById(id);
     }
+    
+    public boolean checkPassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+    
+    public void updatePassword(Long userId, String newPassword) {
+        User user = findById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.update(user);
+    }
 }

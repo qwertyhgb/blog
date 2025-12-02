@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, h } from 'vue'
 import { useTagStore } from '@/stores/category'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  NButton, 
+  NDataTable, 
+  NModal, 
+  NForm, 
+  NFormItem, 
+  NInput, 
+  NCard,
+  NSpace,
+  useMessage,
+  useDialog,
+  type FormInst,
+  type DataTableColumns
+} from 'naive-ui'
+import { AddOutline, CreateOutline, TrashOutline } from '@vicons/ionicons5'
 
 const tagStore = useTagStore()
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
-const dialogVisible = ref(false)
+const showModal = ref(false)
 const isEdit = ref(false)
 const currentTagId = ref<number | null>(null)
 
-const tagFormRef = ref()
+const tagFormRef = ref<FormInst | null>(null)
 const tagForm = ref({
   name: '',
   description: ''
@@ -27,6 +42,64 @@ const tagRules = {
   ]
 }
 
+const columns: DataTableColumns = [
+  {
+    title: 'ID',
+    key: 'id',
+    width: 80
+  },
+  {
+    title: '标签名称',
+    key: 'name',
+    minWidth: 150
+  },
+  {
+    title: '描述',
+    key: 'description',
+    minWidth: 200
+  },
+  {
+    title: '文章数量',
+    key: 'postCount',
+    width: 120
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    render(row: any) {
+      return h(
+        NSpace,
+        { size: 8 },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'primary',
+                secondary: true,
+                onClick: () => showEditDialog(row)
+              },
+              { icon: () => h(CreateOutline), default: () => '编辑' }
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'error',
+                secondary: true,
+                onClick: () => deleteTag(row.id)
+              },
+              { icon: () => h(TrashOutline), default: () => '删除' }
+            )
+          ]
+        }
+      )
+    }
+  }
+]
+
 // 方法
 const fetchTags = async () => {
   try {
@@ -34,6 +107,7 @@ const fetchTags = async () => {
     await tagStore.fetchTags()
   } catch (error) {
     console.error('获取标签列表失败:', error)
+    message.error('获取标签列表失败')
   } finally {
     loading.value = false
   }
@@ -46,7 +120,7 @@ const showCreateDialog = () => {
     name: '',
     description: ''
   }
-  dialogVisible.value = true
+  showModal.value = true
 }
 
 const showEditDialog = (tag: any) => {
@@ -56,52 +130,52 @@ const showEditDialog = (tag: any) => {
     name: tag.name,
     description: tag.description || ''
   }
-  dialogVisible.value = true
+  showModal.value = true
 }
 
 const submitTag = async () => {
   if (!tagFormRef.value) return
   
-  await tagFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
+  tagFormRef.value.validate(async (errors) => {
+    if (!errors) {
       try {
         if (isEdit.value && currentTagId.value) {
           await tagStore.updateTag(currentTagId.value, tagForm.value)
-          ElMessage.success('更新成功')
+          message.success('更新成功')
         } else {
           await tagStore.createTag(tagForm.value)
-          ElMessage.success('创建成功')
+          message.success('创建成功')
         }
         
-        dialogVisible.value = false
+        showModal.value = false
         fetchTags()
       } catch (error: any) {
-        ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        message.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
       }
     }
   })
 }
 
 const deleteTag = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这个标签吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await tagStore.deleteTag(id)
-    ElMessage.success('删除成功')
-    fetchTags()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这个标签吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await tagStore.deleteTag(id)
+        message.success('删除成功')
+        fetchTags()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
-  }
+  })
 }
 
 const cancelDialog = () => {
-  dialogVisible.value = false
+  showModal.value = false
 }
 
 // 初始化
@@ -114,79 +188,62 @@ onMounted(() => {
   <div class="tag-management">
     <div class="page-header">
       <h2>标签管理</h2>
-      <el-button type="primary" :icon="Plus" @click="showCreateDialog">新建标签</el-button>
+      <n-button type="primary" @click="showCreateDialog">
+        <template #icon>
+          <n-icon :component="AddOutline" />
+        </template>
+        新建标签
+      </n-button>
     </div>
     
     <div class="tag-table">
-      <el-table
+      <n-data-table
+        :columns="columns"
         :data="tagStore.tags"
-        v-loading="loading"
-        style="width: 100%"
-        border
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        
-        <el-table-column prop="name" label="标签名称" min-width="150" />
-        
-        <el-table-column prop="description" label="描述" min-width="200" />
-        
-        <el-table-column prop="postCount" label="文章数量" width="120" />
-        
-        <el-table-column label="操作" width="150">
-          <template #default="{ row }">
-            <el-button
-              type="success"
-              size="small"
-              :icon="Edit"
-              @click="showEditDialog(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              @click="deleteTag(row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        :loading="loading"
+        :bordered="false"
+        :single-line="false"
+      />
     </div>
     
-    <el-dialog
-      :title="isEdit ? '编辑标签' : '新建标签'"
-      v-model="dialogVisible"
-      width="500px"
-    >
-      <el-form
-        ref="tagFormRef"
-        :model="tagForm"
-        :rules="tagRules"
-        label-width="80px"
+    <n-modal v-model:show="showModal">
+      <n-card
+        style="width: 500px"
+        :title="isEdit ? '编辑标签' : '新建标签'"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
       >
-        <el-form-item label="标签名称" prop="name">
-          <el-input v-model="tagForm.name" placeholder="请输入标签名称" />
-        </el-form-item>
+        <n-form
+          ref="tagFormRef"
+          :model="tagForm"
+          :rules="tagRules"
+          label-placement="left"
+          label-width="80"
+        >
+          <n-form-item label="标签名称" path="name">
+            <n-input v-model:value="tagForm.name" placeholder="请输入标签名称" />
+          </n-form-item>
+          
+          <n-form-item label="描述" path="description">
+            <n-input
+              v-model:value="tagForm.description"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入标签描述（可选）"
+            />
+          </n-form-item>
+        </n-form>
         
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="tagForm.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入标签描述（可选）"
-          />
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="cancelDialog">取消</el-button>
-          <el-button type="primary" @click="submitTag">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="cancelDialog">取消</n-button>
+            <n-button type="primary" @click="submitTag">确定</n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -205,13 +262,12 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
   font-size: 20px;
-  color: #303133;
+  color: var(--n-text-color);
 }
 
 .tag-table {
-  background-color: #fff;
+  background-color: var(--n-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 </style>

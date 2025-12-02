@@ -1,144 +1,170 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { 
-  Menu, 
-  Document, 
-  Setting, 
-  User, 
-  ArrowDown,
-  House,
-  FolderOpened,
-  PriceTag,
-  ChatDotRound
-} from '@element-plus/icons-vue'
+  NLayout, 
+  NLayoutSider, 
+  NLayoutHeader, 
+  NLayoutContent, 
+  NMenu, 
+  NButton, 
+  NDropdown, 
+  NAvatar, 
+  NIcon,
+  type MenuOption
+} from 'naive-ui'
+import { 
+  HomeOutline,
+  DocumentTextOutline,
+  FolderOpenOutline,
+  PricetagOutline,
+  ChatbubbleOutline,
+  PersonOutline,
+  SettingsOutline,
+  MenuOutline,
+  ChevronDownOutline,
+  LogOutOutline
+} from '@vicons/ionicons5'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const isCollapse = ref(false)
-const activeMenu = computed(() => route.path)
+const collapsed = ref(false)
+const activeKey = computed(() => route.path)
 
 const userInfo = computed(() => userStore.userInfo)
 
-const menuItems = [
+function renderIcon(icon: any) {
+  return () => h(NIcon, null, { default: () => h(icon) })
+}
+
+const menuOptions: MenuOption[] = [
   {
-    index: '/admin/dashboard',
-    title: '仪表盘',
-    icon: House
+    label: '仪表盘',
+    key: '/admin/dashboard',
+    icon: renderIcon(HomeOutline)
   },
   {
-    index: '/admin/posts',
-    title: '文章管理',
-    icon: Document
+    label: '文章管理',
+    key: '/admin/posts',
+    icon: renderIcon(DocumentTextOutline)
   },
   {
-    index: '/admin/categories',
-    title: '分类管理',
-    icon: FolderOpened
+    label: '分类管理',
+    key: '/admin/categories',
+    icon: renderIcon(FolderOpenOutline)
   },
   {
-    index: '/admin/tags',
-    title: '标签管理',
-    icon: PriceTag
+    label: '标签管理',
+    key: '/admin/tags',
+    icon: renderIcon(PricetagOutline)
   },
   {
-    index: '/admin/comments',
-    title: '评论管理',
-    icon: ChatDotRound
+    label: '评论管理',
+    key: '/admin/comments',
+    icon: renderIcon(ChatbubbleOutline)
   },
   {
-    index: '/admin/users',
-    title: '用户管理',
-    icon: User
+    label: '用户管理',
+    key: '/admin/users',
+    icon: renderIcon(PersonOutline)
   },
   {
-    index: '/admin/settings',
-    title: '系统设置',
-    icon: Setting
+    label: '系统设置',
+    key: '/admin/settings',
+    icon: renderIcon(SettingsOutline)
   }
 ]
 
-const toggleSidebar = () => {
-  isCollapse.value = !isCollapse.value
+const userOptions = [
+  {
+    label: '个人中心',
+    key: 'profile',
+    icon: renderIcon(PersonOutline)
+  },
+  {
+    label: '退出登录',
+    key: 'logout',
+    icon: renderIcon(LogOutOutline)
+  }
+]
+
+const handleMenuUpdate = (key: string) => {
+  router.push(key)
 }
 
-const handleLogout = () => {
-  userStore.logout()
-}
-
-const goToProfile = () => {
-  router.push('/profile')
-}
-
-const handleCommand = (command: string) => {
-  if (command === 'profile') {
-    goToProfile()
-  } else if (command === 'logout') {
-    handleLogout()
+const handleUserSelect = (key: string) => {
+  if (key === 'profile') {
+    router.push('/profile')
+  } else if (key === 'logout') {
+    userStore.logout()
+    router.push('/login')
   }
 }
 </script>
 
 <template>
-  <div class="admin-layout">
-    <el-container>
-      <el-aside :width="isCollapse ? '64px' : '200px'" class="admin-sidebar">
-        <div class="admin-logo">
-          <span v-if="!isCollapse">博客管理</span>
-          <span v-else>管</span>
+  <n-layout has-sider class="admin-layout">
+    <n-layout-sider
+      collapse-mode="width"
+      :collapsed-width="64"
+      :width="240"
+      :collapsed="collapsed"
+      show-trigger="bar"
+      @collapse="collapsed = true"
+      @expand="collapsed = false"
+      class="admin-sider"
+      :native-scrollbar="false"
+    >
+      <div class="admin-logo">
+        <span v-if="!collapsed">📊 博客管理</span>
+        <span v-else>📊</span>
+      </div>
+      <n-menu
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="menuOptions"
+        :value="activeKey"
+        @update:value="handleMenuUpdate"
+      />
+    </n-layout-sider>
+    
+    <n-layout>
+      <n-layout-header bordered class="admin-header">
+        <div class="header-left">
+          <n-button quaternary circle @click="collapsed = !collapsed">
+            <template #icon>
+              <n-icon :component="MenuOutline" />
+            </template>
+          </n-button>
         </div>
         
-        <el-menu
-          :default-active="activeMenu"
-          class="admin-menu"
-          :collapse="isCollapse"
-          router
-        >
-          <el-menu-item
-            v-for="item in menuItems"
-            :key="item.index"
-            :index="item.index"
-          >
-            <el-icon><component :is="item.icon" /></el-icon>
-            <template #title>{{ item.title }}</template>
-          </el-menu-item>
-        </el-menu>
-      </el-aside>
+        <div class="header-right">
+          <n-dropdown :options="userOptions" @select="handleUserSelect">
+            <div class="user-info">
+              <n-avatar 
+                round 
+                size="small" 
+                :src="userInfo?.avatar"
+                :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+              />
+              <span class="username">{{ userInfo?.nickname || userInfo?.username || '管理员' }}</span>
+              <n-icon :component="ChevronDownOutline" />
+            </div>
+          </n-dropdown>
+        </div>
+      </n-layout-header>
       
-      <el-container>
-        <el-header class="admin-header">
-          <div class="header-left">
-            <el-button :icon="Menu" @click="toggleSidebar" />
-          </div>
-          
-          <div class="header-right">
-            <el-dropdown @command="handleCommand">
-              <span class="user-info">
-                <el-avatar :size="32" :src="userInfo?.avatar">
-                  {{ userInfo?.nickname ? userInfo.nickname.charAt(0) : 'U' }}
-                </el-avatar>
-                <span class="username">{{ userInfo?.nickname || userInfo?.username || '管理员' }}</span>
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                  <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </el-header>
-        
-        <el-main class="admin-main">
+      <n-layout-content class="admin-content">
+        <div class="content-wrapper">
           <router-view />
-        </el-main>
-      </el-container>
-    </el-container>
-  </div>
+        </div>
+      </n-layout-content>
+    </n-layout>
+  </n-layout>
 </template>
 
 <style scoped>
@@ -146,48 +172,27 @@ const handleCommand = (command: string) => {
   height: 100vh;
 }
 
-.admin-sidebar {
-  background-color: #304156;
-  transition: width 0.3s;
+.admin-sider {
+  background-color: var(--sidebar-bg);
 }
 
 .admin-logo {
-  height: 60px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.admin-menu {
-  border-right: none;
-  background-color: #304156;
-}
-
-.admin-menu .el-menu-item {
-  color: #bfcbd9;
-}
-
-.admin-menu .el-menu-item:hover {
-  background-color: #263445;
-  color: #fff;
-}
-
-.admin-menu .el-menu-item.is-active {
-  background-color: #409eff;
-  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary-color);
 }
 
 .admin-header {
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  height: 64px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  justify-content: space-between;
+  padding: 0 24px;
+  background-color: var(--card-bg);
 }
 
 .header-left {
@@ -204,15 +209,32 @@ const handleCommand = (command: string) => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.user-info:hover {
+  background-color: var(--bg-hover);
 }
 
 .username {
-  margin: 0 8px;
   font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
-.admin-main {
-  background-color: #f0f2f5;
-  padding: 20px;
+.admin-content {
+  background-color: var(--bg-secondary);
+  padding: 0;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  background-color: var(--card-bg);
+  padding: 32px;
+  min-height: calc(100vh - 64px);
 }
 </style>

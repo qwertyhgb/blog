@@ -1,10 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  NButton, 
+  NInput, 
+  NDataTable, 
+  NPagination, 
+  NTag, 
+  NSpace,
+  useMessage,
+  useDialog,
+  type DataTableColumns
+} from 'naive-ui'
+import { 
+  SearchOutline, 
+  AddOutline, 
+  EyeOutline, 
+  CreateOutline, 
+  TrashOutline 
+} from '@vicons/ionicons5'
 
 const router = useRouter()
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const searchKeyword = ref('')
@@ -13,6 +31,106 @@ const pageSize = ref(10)
 
 const posts = ref<any[]>([])
 const total = ref(0)
+
+// Columns definition
+const columns: DataTableColumns = [
+  {
+    title: 'ID',
+    key: 'id',
+    width: 80
+  },
+  {
+    title: '标题',
+    key: 'title',
+    width: 200,
+    ellipsis: {
+      tooltip: true
+    }
+  },
+  {
+    title: '分类',
+    key: 'category.name',
+    width: 120,
+    render(row: any) {
+      return row.category?.name || '-'
+    }
+  },
+  {
+    title: '标签',
+    key: 'tags',
+    width: 200,
+    render(row: any) {
+      const tags = row.tags || []
+      return h(
+        NSpace,
+        { size: 4 },
+        {
+          default: () => tags.map((tag: any) => 
+            h(NTag, { size: 'small', bordered: false }, { default: () => tag.name })
+          )
+        }
+      )
+    }
+  },
+  {
+    title: '浏览量',
+    key: 'viewCount',
+    width: 100
+  },
+  {
+    title: '创建时间',
+    key: 'createTime',
+    width: 150,
+    render(row: any) {
+      return formatDate(row.createTime)
+    }
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 200,
+    render(row: any) {
+      return h(
+        NSpace,
+        { size: 8 },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'info',
+                secondary: true,
+                onClick: () => viewPost(row.id)
+              },
+              { icon: () => h(EyeOutline), default: () => '查看' }
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'primary',
+                secondary: true,
+                onClick: () => editPost(row.id)
+              },
+              { icon: () => h(CreateOutline), default: () => '编辑' }
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'error',
+                secondary: true,
+                onClick: () => deletePost(row.id)
+              },
+              { icon: () => h(TrashOutline), default: () => '删除' }
+            )
+          ]
+        }
+      )
+    }
+  }
+]
 
 // 方法
 const fetchPosts = async () => {
@@ -30,6 +148,7 @@ const fetchPosts = async () => {
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
+    message.error('获取文章列表失败')
   } finally {
     loading.value = false
   }
@@ -54,22 +173,22 @@ const editPost = (id: number) => {
 }
 
 const deletePost = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这篇文章吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    const { postApi } = await import('@/api')
-    await postApi.deletePost(id)
-    ElMessage.success('删除成功')
-    fetchPosts()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这篇文章吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        const { postApi } = await import('@/api')
+        await postApi.deletePost(id)
+        message.success('删除成功')
+        fetchPosts()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
     }
-  }
+  })
 }
 
 const createPost = () => {
@@ -91,102 +210,42 @@ onMounted(() => {
   <div class="post-management">
     <div class="page-header">
       <h2>文章管理</h2>
-      <el-button type="primary" :icon="Plus" @click="createPost">新建文章</el-button>
+      <n-button type="primary" @click="createPost">
+        <template #icon>
+          <n-icon :component="AddOutline" />
+        </template>
+        新建文章
+      </n-button>
     </div>
     
     <div class="search-bar">
-      <el-input
-        v-model="searchKeyword"
+      <n-input
+        v-model:value="searchKeyword"
         placeholder="搜索文章标题"
         class="search-input"
         @keyup.enter="handleSearch"
       >
-        <template #append>
-          <el-button :icon="Search" @click="handleSearch" />
+        <template #suffix>
+          <n-icon :component="SearchOutline" class="search-icon" @click="handleSearch" />
         </template>
-      </el-input>
+      </n-input>
     </div>
     
     <div class="post-table">
-      <el-table
+      <n-data-table
+        :columns="columns"
         :data="posts"
-        v-loading="loading"
-        style="width: 100%"
-        border
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        
-        <el-table-column prop="title" label="标题" min-width="200">
-          <template #default="{ row }">
-            <div class="post-title">{{ row.title }}</div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="category" label="分类" width="120">
-          <template #default="{ row }">
-            {{ row.category?.name || '-' }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="tags" label="标签" width="200">
-          <template #default="{ row }">
-            <el-tag
-              v-for="tag in (row.tags || [])"
-              :key="tag.id"
-              size="small"
-              style="margin-right: 5px"
-            >
-              {{ tag.name }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="viewCount" label="浏览量" width="100" />
-        
-        <el-table-column prop="createTime" label="创建时间" width="120">
-          <template #default="{ row }">
-            {{ formatDate(row.createTime) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="180">
-          <template #default="{ row }">
-            <el-button
-              type="primary"
-              size="small"
-              :icon="View"
-              @click="viewPost(row.id)"
-            >
-              查看
-            </el-button>
-            <el-button
-              type="success"
-              size="small"
-              :icon="Edit"
-              @click="editPost(row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              @click="deletePost(row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        :loading="loading"
+        :bordered="false"
+        :single-line="false"
+      />
       
       <div class="pagination">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :total="total"
+        <n-pagination
+          v-model:page="currentPage"
+          :page-count="Math.ceil(total / pageSize)"
           :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
+          @update:page="handlePageChange"
         />
       </div>
     </div>
@@ -208,7 +267,7 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
   font-size: 20px;
-  color: #303133;
+  color: var(--n-text-color);
 }
 
 .search-bar {
@@ -219,17 +278,14 @@ onMounted(() => {
   width: 300px;
 }
 
-.post-table {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  padding: 20px;
+.search-icon {
+  cursor: pointer;
 }
 
-.post-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.post-table {
+  background-color: var(--n-color);
+  border-radius: 8px;
+  padding: 20px;
 }
 
 .pagination {

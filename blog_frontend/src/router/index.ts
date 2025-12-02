@@ -45,6 +45,11 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/category',
+      name: 'categories',
+      component: () => import('../views/Categories.vue')
+    },
+    {
       path: '/category/:id',
       name: 'category',
       component: () => import('../views/Category.vue'),
@@ -52,7 +57,8 @@ const router = createRouter({
     },
     {
       path: '/tag',
-      redirect: '/'
+      name: 'tags',
+      component: () => import('../views/Tags.vue')
     },
     {
       path: '/tag/:id',
@@ -116,13 +122,27 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
 
   // 检查是否需要登录
   if (to.meta.requiresAuth && !userStore.token) {
     next({ name: 'login', query: { redirect: to.fullPath } })
     return
+  }
+
+  // 如果有 token 但没有用户信息，先获取用户信息
+  if (userStore.token && !userStore.userInfo) {
+    try {
+      await userStore.getCurrentUser()
+    } catch (error) {
+      // 获取用户信息失败，可能 token 已过期
+      console.error('获取用户信息失败:', error)
+      if (to.meta.requiresAuth) {
+        next({ name: 'login', query: { redirect: to.fullPath } })
+        return
+      }
+    }
   }
 
   // 检查是否需要管理员权限

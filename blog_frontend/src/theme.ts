@@ -1,0 +1,128 @@
+import type { GlobalThemeOverrides } from 'naive-ui'
+
+export const lightThemeOverrides: GlobalThemeOverrides = {
+    common: {
+        primaryColor: '#2383e2',
+        primaryColorHover: '#1a6dc4',
+        primaryColorPressed: '#1558a0',
+        primaryColorSuppl: '#529cca',
+        textColorBase: '#37352f',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif',
+        bodyColor: '#ffffff',
+        cardColor: '#ffffff',
+        borderRadius: '6px',
+        borderColor: 'rgba(55, 53, 47, 0.16)',
+    },
+    Layout: {
+        color: '#ffffff',
+        siderColor: '#f7f6f3',
+        headerColor: '#ffffff',
+    },
+    Card: {
+        borderRadius: '8px',
+        borderColor: 'rgba(55, 53, 47, 0.16)',
+        color: '#ffffff',
+        paddingMedium: '24px',
+    },
+    Button: {
+        borderRadius: '6px',
+        fontSizeMedium: '14px',
+        fontWeightStrong: '500',
+        paddingMedium: '0 16px',
+        heightMedium: '36px',
+    },
+    Input: {
+        borderRadius: '6px',
+        border: '1px solid rgba(55, 53, 47, 0.16)',
+        heightMedium: '36px',
+    },
+    Select: {
+        borderRadius: '6px',
+    }
+}
+
+export const darkThemeOverrides: GlobalThemeOverrides = {
+    common: {
+        primaryColor: '#4a9eff',
+        primaryColorHover: '#6bb0ff',
+        primaryColorPressed: '#3d8ae6',
+        primaryColorSuppl: '#6bb0ff',
+        textColorBase: 'rgba(255, 255, 255, 0.92)',
+        bodyColor: '#0f0f0f',
+        cardColor: '#161616',
+        borderRadius: '8px',
+        borderColor: 'rgba(255, 255, 255, 0.12)',
+        dividerColor: 'rgba(255, 255, 255, 0.08)',
+        hoverColor: 'rgba(255, 255, 255, 0.08)',
+        pressedColor: 'rgba(255, 255, 255, 0.12)',
+        modalColor: '#1a1a1a',
+        popoverColor: '#1a1a1a',
+        tableColor: '#161616',
+        inputColor: '#1a1a1a',
+        codeColor: '#1a1a1a',
+        tagColor: 'rgba(74, 158, 255, 0.15)',
+        actionColor: 'rgba(255, 255, 255, 0.05)',
+    },
+    Layout: {
+        color: '#0f0f0f',
+        siderColor: '#1a1a1a',
+        headerColor: '#1a1a1a',
+        footerColor: '#1a1a1a',
+    },
+    Card: {
+        borderRadius: '12px',
+        borderColor: 'rgba(255, 255, 255, 0.12)',
+        color: '#161616',
+        colorEmbedded: '#1a1a1a',
+        paddingMedium: '24px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+    },
+    Button: {
+        borderRadius: '8px',
+        fontSizeMedium: '14px',
+        fontWeightStrong: '600',
+        paddingMedium: '0 18px',
+        heightMedium: '38px',
+        colorHoverPrimary: '#6bb0ff',
+        colorPressedPrimary: '#3d8ae6',
+        textColorPrimary: '#ffffff',
+        textColorHoverPrimary: '#ffffff',
+        textColorPressedPrimary: '#ffffff',
+        borderPrimary: 'none',
+        borderHoverPrimary: 'none',
+        borderPressedPrimary: 'none',
+    },
+    Input: {
+        borderRadius: '8px',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        heightMedium: '38px',
+        color: '#1a1a1a',
+        colorFocus: '#1a1a1a',
+        textColor: 'rgba(255, 255, 255, 0.92)',
+        placeholderColor: 'rgba(255, 255, 255, 0.4)',
+        borderHover: '1px solid rgba(74, 158, 255, 0.4)',
+        borderFocus: '1px solid #4a9eff',
+        boxShadowFocus: '0 0 0 2px rgba(74, 158, 255, 0.2)',
+    },
+    Select: {
+        borderRadius: '8px',
+    },
+    Tag: {
+        borderRadius: '6px',
+        color: 'rgba(74, 158, 255, 0.15)',
+        textColor: 'rgba(255, 255, 255, 0.85)',
+        border: '1px solid rgba(74, 158, 255, 0.2)',
+    },
+    DataTable: {
+        thColor: '#1a1a1a',
+        tdColor: '#161616',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        thTextColor: 'rgba(255, 255, 255, 0.85)',
+        tdTextColor: 'rgba(255, 255, 255, 0.92)',
+    },
+    Pagination: {
+        itemBorderRadius: '6px',
+        itemColorActive: '#4a9eff',
+        itemTextColorActive: '#ffffff',
+    }
+}

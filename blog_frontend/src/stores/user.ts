@@ -85,12 +85,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 初始化时获取用户信息
-  if (token.value) {
-    getCurrentUser().catch(() => {
-      // 静默处理错误，让request拦截器处理
-    })
-  }
+  // 不在这里初始化获取用户信息，让路由守卫处理
 
   return {
     token,

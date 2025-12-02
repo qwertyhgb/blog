@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { 
-  Document, 
-  View, 
-  ChatDotRound, 
-  User,
-  Timer
-} from '@element-plus/icons-vue'
+  NGrid, 
+  NGridItem, 
+  NCard, 
+  NIcon, 
+  NEmpty, 
+  NSpin,
+  NStatistic,
+  NList,
+  NListItem,
+  NThing
+} from 'naive-ui'
+import { 
+  DocumentTextOutline, 
+  EyeOutline, 
+  ChatbubbleOutline, 
+  PersonOutline,
+  TimeOutline,
+  TrendingUpOutline
+} from '@vicons/ionicons5'
 import { postApi, commentApi, userApi } from '@/api'
 
 const loading = ref(false)
@@ -24,23 +37,19 @@ const fetchStats = async () => {
   try {
     loading.value = true
     
-    // 获取文章统计和最近文章
     const postRes = await postApi.getAdminPosts({ page: 1, size: 5 })
     if (postRes.data) {
       stats.value.postCount = postRes.data.total || 0
       recentPosts.value = postRes.data.records || []
-      // 计算总浏览量
       stats.value.viewCount = recentPosts.value.reduce((sum: number, post: any) => sum + (post.viewCount || 0), 0)
     }
     
-    // 获取评论统计和最近评论
     const commentRes = await commentApi.getAdminComments({ page: 1, size: 5 })
     if (commentRes.data) {
       stats.value.commentCount = commentRes.data.total || 0
       recentComments.value = commentRes.data.records || []
     }
     
-    // 获取用户统计
     try {
       const userRes = await userApi.getUsers()
       if (userRes.data) {
@@ -68,123 +77,113 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-dashboard" v-loading="loading">
+  <div class="admin-dashboard">
     <div class="dashboard-header">
       <h2>仪表盘</h2>
       <p>欢迎来到博客管理系统</p>
     </div>
     
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-content">
-              <div class="stats-icon post-icon">
-                <el-icon><Document /></el-icon>
-              </div>
-              <div class="stats-info">
-                <div class="stats-number">{{ stats.postCount }}</div>
-                <div class="stats-label">文章总数</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
+    <n-spin :show="loading">
+      <n-grid :x-gap="16" :y-gap="16" :cols="4" responsive="screen">
+        <n-grid-item>
+          <n-card class="stats-card" hoverable>
+            <n-statistic label="文章总数" :value="stats.postCount">
+              <template #prefix>
+                <div class="stats-icon post-icon">
+                  <n-icon :component="DocumentTextOutline" :size="28" />
+                </div>
+              </template>
+              <template #suffix>
+                <n-icon :component="TrendingUpOutline" :size="16" style="color: #67c23a" />
+              </template>
+            </n-statistic>
+          </n-card>
+        </n-grid-item>
         
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-content">
-              <div class="stats-icon view-icon">
-                <el-icon><View /></el-icon>
-              </div>
-              <div class="stats-info">
-                <div class="stats-number">{{ stats.viewCount }}</div>
-                <div class="stats-label">总浏览量</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
+        <n-grid-item>
+          <n-card class="stats-card" hoverable>
+            <n-statistic label="总浏览量" :value="stats.viewCount">
+              <template #prefix>
+                <div class="stats-icon view-icon">
+                  <n-icon :component="EyeOutline" :size="28" />
+                </div>
+              </template>
+            </n-statistic>
+          </n-card>
+        </n-grid-item>
         
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-content">
-              <div class="stats-icon comment-icon">
-                <el-icon><ChatDotRound /></el-icon>
-              </div>
-              <div class="stats-info">
-                <div class="stats-number">{{ stats.commentCount }}</div>
-                <div class="stats-label">评论总数</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
+        <n-grid-item>
+          <n-card class="stats-card" hoverable>
+            <n-statistic label="评论总数" :value="stats.commentCount">
+              <template #prefix>
+                <div class="stats-icon comment-icon">
+                  <n-icon :component="ChatbubbleOutline" :size="28" />
+                </div>
+              </template>
+            </n-statistic>
+          </n-card>
+        </n-grid-item>
         
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-content">
-              <div class="stats-icon user-icon">
-                <el-icon><User /></el-icon>
-              </div>
-              <div class="stats-info">
-                <div class="stats-number">{{ stats.userCount }}</div>
-                <div class="stats-label">用户总数</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-    
-    <el-row :gutter="20" class="dashboard-content">
-      <el-col :span="12">
-        <el-card class="recent-posts">
-          <template #header>
-            <div class="card-header">
-              <span>最近文章</span>
-              <el-icon><Timer /></el-icon>
-            </div>
-          </template>
-          
-          <div v-if="recentPosts.length === 0" class="empty-state">
-            <el-empty description="暂无文章" />
-          </div>
-          
-          <div v-else class="post-list">
-            <div class="post-item" v-for="post in recentPosts" :key="post.id">
-              <div class="post-title">{{ post.title }}</div>
-              <div class="post-meta">
-                <span>{{ formatDate(post.createTime) }}</span>
-                <span>{{ post.viewCount }} 次浏览</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
+        <n-grid-item>
+          <n-card class="stats-card" hoverable>
+            <n-statistic label="用户总数" :value="stats.userCount">
+              <template #prefix>
+                <div class="stats-icon user-icon">
+                  <n-icon :component="PersonOutline" :size="28" />
+                </div>
+              </template>
+            </n-statistic>
+          </n-card>
+        </n-grid-item>
+      </n-grid>
       
-      <el-col :span="12">
-        <el-card class="recent-comments">
-          <template #header>
-            <div class="card-header">
-              <span>最近评论</span>
-              <el-icon><ChatDotRound /></el-icon>
-            </div>
-          </template>
-          
-          <div v-if="recentComments.length === 0" class="empty-state">
-            <el-empty description="暂无评论" />
-          </div>
-          
-          <div v-else class="comment-list">
-            <div class="comment-item" v-for="comment in recentComments" :key="comment.id">
-              <div class="comment-content">{{ comment.content }}</div>
-              <div class="comment-meta">
-                <span>{{ comment.user?.nickname || comment.user?.username || '匿名' }}</span>
-                <span>{{ formatDate(comment.createTime) }}</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+      <n-grid :x-gap="16" :y-gap="16" :cols="2" responsive="screen" style="margin-top: 24px">
+        <n-grid-item>
+          <n-card title="最近文章" :segmented="{ content: true }">
+            <template #header-extra>
+              <n-icon :component="TimeOutline" />
+            </template>
+            
+            <n-list v-if="recentPosts.length > 0" hoverable clickable>
+              <n-list-item v-for="post in recentPosts" :key="post.id">
+                <n-thing :title="post.title">
+                  <template #description>
+                    <span style="margin-right: 16px">{{ formatDate(post.createTime) }}</span>
+                    <span>{{ post.viewCount }} 次浏览</span>
+                  </template>
+                </n-thing>
+              </n-list-item>
+            </n-list>
+            
+            <n-empty v-else description="暂无文章" style="padding: 40px 0" />
+          </n-card>
+        </n-grid-item>
+        
+        <n-grid-item>
+          <n-card title="最近评论" :segmented="{ content: true }">
+            <template #header-extra>
+              <n-icon :component="ChatbubbleOutline" />
+            </template>
+            
+            <n-list v-if="recentComments.length > 0" hoverable clickable>
+              <n-list-item v-for="comment in recentComments" :key="comment.id">
+                <n-thing>
+                  <template #description>
+                    {{ comment.content }}
+                  </template>
+                  <template #footer>
+                    <span style="margin-right: 16px">{{ comment.user?.nickname || comment.user?.username || '匿名' }}</span>
+                    <span>{{ formatDate(comment.createTime) }}</span>
+                  </template>
+                </n-thing>
+              </n-list-item>
+            </n-list>
+            
+            <n-empty v-else description="暂无评论" style="padding: 40px 0" />
+          </n-card>
+        </n-grid-item>
+      </n-grid>
+    </n-spin>
   </div>
 </template>
 
@@ -194,164 +193,55 @@ onMounted(() => {
 }
 
 .dashboard-header {
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 
 .dashboard-header h2 {
-  margin: 0 0 10px 0;
-  font-size: 24px;
-  color: #303133;
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-color);
 }
 
 .dashboard-header p {
   margin: 0;
-  color: #909399;
-}
-
-.stats-cards {
-  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .stats-card {
-  height: 120px;
+  transition: all 0.2s ease;
 }
 
-.stats-content {
-  display: flex;
-  align-items: center;
-  height: 100%;
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px var(--shadow-md);
 }
 
 .stats-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
-  font-size: 24px;
   color: #fff;
+  margin-bottom: 12px;
 }
 
 .post-icon {
-  background-color: #409eff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .view-icon {
-  background-color: #67c23a;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .comment-icon {
-  background-color: #e6a23c;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
 .user-icon {
-  background-color: #f56c6c;
-}
-
-.stats-info {
-  flex: 1;
-}
-
-.stats-number {
-  font-size: 28px;
-  font-weight: bold;
-  color: #303133;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.stats-label {
-  font-size: 14px;
-  color: #909399;
-}
-
-.dashboard-content {
-  margin-bottom: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-header span {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
-}
-
-.card-header .el-icon {
-  color: #909399;
-}
-
-.recent-posts, .recent-comments {
-  height: 400px;
-}
-
-.post-list, .comment-list {
-  height: 320px;
-  overflow-y: auto;
-}
-
-.post-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.post-item:last-child {
-  border-bottom: none;
-}
-
-.post-title {
-  font-size: 14px;
-  color: #303133;
-  margin-bottom: 5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.post-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #909399;
-}
-
-.comment-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.comment-item:last-child {
-  border-bottom: none;
-}
-
-.comment-content {
-  font-size: 14px;
-  color: #303133;
-  margin-bottom: 5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.comment-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #909399;
-}
-
-.empty-state {
-  height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 </style>

@@ -45,6 +45,7 @@ export interface Post {
     coverImage?: string;
     viewCount: number;
     likeCount: number;
+    commentCount?: number;
     status: number; // 0: draft, 1: published
     createTime: string;
     updateTime: string;

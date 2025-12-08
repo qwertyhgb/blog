@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useCategoryStore } from '@/stores/category'
 import { useUserStore } from '@/stores/user'
 import { 
-  NSkeleton, 
   NTag, 
   NIcon, 
   NInput,
@@ -13,12 +12,9 @@ import {
   NSpace,
   NButton,
   NAvatar,
-  NStatistic,
   NGrid,
   NGridItem,
-  NCard,
-  NBadge,
-  NEmpty
+  NBadge
 } from 'naive-ui'
 import { 
   TimeOutline,
@@ -34,7 +30,6 @@ import EmptyState from '@/components/EmptyState.vue'
 import PostCardSkeleton from '@/components/PostCardSkeleton.vue'
 import BackTop from '@/components/BackTop.vue'
 
-const route = useRoute()
 const router = useRouter()
 const postStore = usePostStore()
 const categoryStore = useCategoryStore()
@@ -103,10 +98,6 @@ const goToPostDetail = (id: number) => {
   router.push(`/post/${id}`)
 }
 
-const goToCategory = (id: number) => {
-  router.push(`/category/${id}`)
-}
-
 // 预加载文章详情（鼠标悬停时）
 const preloadPost = (id: number) => {
   // 可以在这里预加载文章数据
@@ -158,7 +149,7 @@ const handlePageChange = (page: number) => {
 }
 
 // 搜索防抖
-let searchTimeout: NodeJS.Timeout | null = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 watch(searchKeyword, (newVal) => {
   if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
@@ -200,7 +191,6 @@ onMounted(async () => {
 })
 
 // 清理
-import { onUnmounted } from 'vue'
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   if (searchTimeout) clearTimeout(searchTimeout)
@@ -682,6 +672,7 @@ kbd {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -837,6 +828,7 @@ kbd {
   margin-bottom: 20px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

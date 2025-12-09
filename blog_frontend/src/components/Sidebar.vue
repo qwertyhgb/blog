@@ -1,7 +1,11 @@
 <script setup lang="ts">
+// 导入Vue组合式API函数
 import { ref, computed, h } from 'vue'
+// 导入Vue Router相关函数
 import { useRouter, useRoute } from 'vue-router'
+// 导入用户状态管理store
 import { useUserStore } from '@/stores/user'
+// 导入Naive UI组件
 import { 
   NIcon, 
   NAvatar, 
@@ -9,30 +13,39 @@ import {
   NDropdown,
   NDivider
 } from 'naive-ui'
+// 导入图标组件
 import { 
-  HomeOutline,
-  CreateOutline,
-  BookmarksOutline,
-  PricetagsOutline,
-  PersonOutline,
-  LogOutOutline,
-  MoonOutline,
-  SunnyOutline,
-  GridOutline,
-  ChevronBackOutline,
-  ChevronForwardOutline
+  HomeOutline,        // 首页图标
+  CreateOutline,      // 创建图标
+  BookmarksOutline,    // 书签/分类图标
+  PricetagsOutline,    // 标签图标
+  PersonOutline,       // 个人图标
+  LogOutOutline,       // 退出登录图标
+  MoonOutline,         // 月亮图标（暗色模式）
+  SunnyOutline,        // 太阳图标（亮色模式）
+  GridOutline,         // 网格图标（管理后台）
+  ChevronBackOutline,  // 左箭头图标
+  ChevronForwardOutline // 右箭头图标
 } from '@vicons/ionicons5'
 
+// 初始化路由
 const router = useRouter()
 const route = useRoute()
+// 初始化用户状态管理store
 const userStore = useUserStore()
 
+// 主题状态，从本地存储获取初始值
 const isDark = ref(localStorage.getItem('theme') === 'dark')
+// 计算属性：是否已登录
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+// 计算属性：用户信息
 const userInfo = computed(() => userStore.userInfo)
+// 计算属性：是否为管理员
 const isAdmin = computed(() => userStore.isAdmin)
+// 侧边栏折叠状态，从本地存储获取初始值
 const collapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
 
+// 计算属性：菜单项列表
 const menuItems = computed(() => {
   const items = [
     { label: '首页', key: '/', icon: HomeOutline, divider: false },
@@ -40,10 +53,12 @@ const menuItems = computed(() => {
     { label: '标签', key: '/tag', icon: PricetagsOutline, divider: true },
   ]
   
+  // 如果已登录，添加"我的文章"菜单项
   if (isLoggedIn.value) {
     items.push({ label: '我的文章', key: '/my-posts', icon: CreateOutline, divider: false })
   }
   
+  // 如果是管理员，添加"管理后台"菜单项
   if (isAdmin.value) {
     items.push({ label: '管理后台', key: '/admin', icon: GridOutline, divider: false })
   }
@@ -51,28 +66,35 @@ const menuItems = computed(() => {
   return items
 })
 
+// 切换主题方法
 const toggleDark = () => {
   isDark.value = !isDark.value
   const html = document.documentElement
   if (isDark.value) {
+    // 切换到暗色主题
     html.classList.add('dark')
     localStorage.setItem('theme', 'dark')
   } else {
+    // 切换到亮色主题
     html.classList.remove('dark')
     localStorage.setItem('theme', 'light')
   }
+  // 触发主题变更事件
   window.dispatchEvent(new Event('theme-changed'))
 }
 
+// 处理用户退出登录方法
 const handleLogout = () => {
   userStore.logout()
   router.push('/login')
 }
 
+// 导航到指定路径方法
 const navigateTo = (path: string) => {
   router.push(path)
 }
 
+// 用户下拉菜单选项
 const userOptions = [
   {
     label: '个人资料',
@@ -86,6 +108,7 @@ const userOptions = [
   }
 ]
 
+// 处理用户下拉菜单选择方法
 const handleUserSelect = (key: string) => {
   if (key === 'profile') {
     router.push('/profile')
@@ -94,47 +117,67 @@ const handleUserSelect = (key: string) => {
   }
 }
 
+// 切换侧边栏折叠状态方法
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value
   localStorage.setItem('sidebar-collapsed', String(collapsed.value))
+  // 触发侧边栏状态变更事件
   window.dispatchEvent(new Event('sidebar-toggled'))
 }
 </script>
 
 <template>
+  <!-- 侧边栏容器，根据折叠状态添加相应类名 -->
   <aside class="sidebar" :class="{ collapsed }">
+    <!-- 侧边栏头部：包含logo和折叠按钮 -->
     <div class="sidebar-header">
+      <!-- Logo区域，点击可导航到首页 -->
       <div class="logo" @click="navigateTo('/')">
+        <!-- Logo图标容器 -->
         <div class="logo-icon-wrapper">
+          <!-- Logo图标 -->
           <span class="logo-icon">✍️</span>
+          <!-- Logo背景效果 -->
           <div class="logo-icon-bg"></div>
         </div>
+        <!-- Logo文字容器，仅在非折叠状态下显示 -->
         <div class="logo-text-wrapper" v-if="!collapsed">
+          <!-- Logo主标题 -->
           <span class="logo-text">我的博客</span>
+          <!-- Logo副标题 -->
           <span class="logo-subtitle">My Blog</span>
         </div>
       </div>
+      <!-- 折叠/展开按钮 -->
       <n-button text class="collapse-btn" @click="toggleSidebar">
         <n-icon :component="collapsed ? ChevronForwardOutline : ChevronBackOutline" :size="20" />
       </n-button>
     </div>
 
+    <!-- 侧边栏内容区域：包含菜单和操作按钮 -->
     <div class="sidebar-content">
+      <!-- 菜单区域 -->
       <div class="menu-section">
+        <!-- 遍历菜单项，生成菜单 -->
         <template v-for="item in menuItems" :key="item.key">
+          <!-- 菜单项，根据当前路由判断是否激活 -->
           <div 
             class="menu-item"
             :class="{ active: route.path === item.key || route.path.startsWith(item.key + '/') }"
             @click="navigateTo(item.key)"
             :title="collapsed ? item.label : ''"
           >
+            <!-- 菜单项图标 -->
             <n-icon :component="item.icon" :size="18" />
+            <!-- 菜单项文本，仅在非折叠状态下显示 -->
             <span v-if="!collapsed">{{ item.label }}</span>
           </div>
+          <!-- 分割线，根据菜单项配置显示 -->
           <n-divider v-if="item.divider" style="margin: 12px 0" />
         </template>
       </div>
 
+      <!-- 操作区域：未登录时显示登录按钮 -->
       <div class="action-section" v-if="!isLoggedIn">
         <n-button 
           type="primary" 
@@ -145,28 +188,38 @@ const toggleSidebar = () => {
           strong
           :title="collapsed ? '登录' : ''"
         >
+          <!-- 登录按钮图标，仅在折叠状态下显示 -->
           <template #icon v-if="collapsed">
             <n-icon :component="PersonOutline" />
           </template>
+          <!-- 登录按钮文本，仅在非折叠状态下显示 -->
           <span v-if="!collapsed">登录</span>
         </n-button>
       </div>
     </div>
 
+    <!-- 版本信息区域 -->
     <div class="sidebar-version">
       <span>v1.0.0</span>
     </div>
 
+    <!-- 侧边栏底部：包含主题切换和用户头像 -->
     <div class="sidebar-footer">
+      <!-- 底部操作按钮组 -->
       <div class="footer-actions">
+        <!-- 主题切换按钮 -->
         <n-button quaternary circle @click="toggleDark" size="small">
           <template #icon>
+            <!-- 根据当前主题显示相应图标 -->
             <n-icon :component="isDark ? SunnyOutline : MoonOutline" :size="18" />
           </template>
         </n-button>
         
+        <!-- 用户头像下拉菜单，仅在已登录时显示 -->
         <n-dropdown v-if="isLoggedIn" :options="userOptions" @select="handleUserSelect" trigger="click">
+          <!-- 用户头像容器 -->
           <div class="user-avatar">
+            <!-- 用户头像组件 -->
             <n-avatar 
               round 
               size="small" 

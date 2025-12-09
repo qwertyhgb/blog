@@ -22,6 +22,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+/**
+ * Spring Security 安全配置类
+ * 
+ * 负责配置应用程序的安全策略，包括认证、授权、跨域请求等
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -31,6 +36,13 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * 构造函数，注入所需的服务和组件
+     * 
+     * @param userService 用户服务，用于用户认证
+     * @param jwtAuthenticationFilter JWT认证过滤器
+     * @param passwordEncoder 密码编码器
+     */
     public SecurityConfig(UserService userService,
             JwtAuthenticationFilter jwtAuthenticationFilter,
             PasswordEncoder passwordEncoder) {
@@ -39,6 +51,11 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * 配置认证提供者
+     * 
+     * @return DaoAuthenticationProvider 实例
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -47,32 +64,54 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * 配置认证管理器
+     * 
+     * @param AuthenticationConfiguration 认证配置
+     * @return AuthenticationManager 实例
+     * @throws Exception 配置异常
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * 配置安全过滤器链
+     * 
+     * @param HttpSecurity HTTP安全配置
+     * @return SecurityFilterChain 安全过滤器链
+     * @throws Exception 配置异常
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(Customizer.withDefaults()) // 启用跨域支持
+                .csrf(csrf -> csrf.disable()) // 禁用CSRF防护，因为使用JWT
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 无状态会话管理
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/tags/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        // 允许未认证访问的路径
+                        .requestMatchers("/auth/**").permitAll() // 认证相关接口
+                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll() // 博客文章查看
+                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll() // 分类查看
+                        .requestMatchers(HttpMethod.GET, "/tags/**").permitAll() // 标签查看
+                        .requestMatchers(HttpMethod.GET, "/comments/**").permitAll() // 评论查看
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll() // 文件访问
+                        // 管理员路径需要ADMIN角色
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // 其他请求需要认证
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 添加JWT过滤器
 
         return http.build();
     }
 
+    /**
+     * 配置跨域资源共享(CORS)
+     * 
+     * @return CorsConfigurationSource CORS配置源
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

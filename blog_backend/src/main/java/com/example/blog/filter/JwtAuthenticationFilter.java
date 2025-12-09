@@ -17,12 +17,27 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * JWT认证过滤器
+ * 
+ * 继承OncePerRequestFilter，确保每个请求只过滤一次
+ * 负责从HTTP请求中提取JWT令牌，验证其有效性，并设置用户认证信息
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * 执行过滤逻辑
+     * 
+     * @param request HTTP请求对象
+     * @param response HTTP响应对象
+     * @param filterChain 过滤器链
+     * @throws ServletException Servlet异常
+     * @throws IOException IO异常
+     */
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
@@ -53,6 +68,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * 从请求中提取JWT令牌
+     * 
+     * @param request HTTP请求对象
+     * @return JWT令牌字符串，如果不存在则返回null
+     */
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {

@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * 认证控制器
+ * 
+ * 处理用户认证相关的请求，包括登录、注册、令牌刷新等
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -18,18 +23,36 @@ public class AuthController {
     @Autowired
     private AuthService authService;
     
+    /**
+     * 用户登录
+     * 
+     * @param loginRequest 登录请求对象
+     * @return 包含JWT令牌的响应
+     */
     @PostMapping("/login")
     public ApiResponse<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
         Map<String, String> tokenMap = authService.login(loginRequest);
         return ApiResponse.success("登录成功", tokenMap);
     }
     
+    /**
+     * 用户注册
+     * 
+     * @param registerRequest 注册请求对象
+     * @return 包含用户信息的响应
+     */
     @PostMapping("/register")
     public ApiResponse<UserVO> register(@RequestBody RegisterRequest registerRequest) {
         User user = authService.register(registerRequest);
         return ApiResponse.success("注册成功", UserVO.fromUser(user));
     }
     
+    /**
+     * 刷新访问令牌
+     * 
+     * @param request 包含刷新令牌的请求
+     * @return 包含新访问令牌的响应
+     */
     @PostMapping("/refresh")
     public ApiResponse<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
@@ -39,6 +62,11 @@ public class AuthController {
         return ApiResponse.success("刷新令牌成功", tokenMap);
     }
     
+    /**
+     * 获取当前用户信息
+     * 
+     * @return 包含当前用户信息的响应
+     */
     @GetMapping("/me")
     public ApiResponse<UserVO> getCurrentUser() {
         User user = authService.getCurrentUser();

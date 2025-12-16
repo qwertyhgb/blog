@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // 导入Naive UI组件
-import { NBackTop, NIcon } from 'naive-ui'
+import { NBackTop, NIcon } from "naive-ui";
 // 导入向上箭头图标
-import { ArrowUpOutline } from '@vicons/ionicons5'
+import { ArrowUpOutline } from "@vicons/ionicons5";
 </script>
 
 <template>

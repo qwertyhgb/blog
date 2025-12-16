@@ -1,32 +1,29 @@
 <script setup lang="ts">
 // 导入Naive UI组件
-import { NEmpty, NButton, NIcon } from 'naive-ui'
+import { NEmpty, NButton, NIcon } from "naive-ui";
 // 导入图标组件
-import { AddOutline } from '@vicons/ionicons5'
+import { AddOutline } from "@vicons/ionicons5";
 
 // 定义组件属性
 const props = defineProps<{
-  title?: string // 标题
-  description?: string // 描述文本
-  showAction?: boolean // 是否显示操作按钮
-  actionText?: string // 操作按钮文本
-  actionIcon?: any // 操作按钮图标
-}>()
+  title?: string; // 标题
+  description?: string; // 描述文本
+  showAction?: boolean; // 是否显示操作按钮
+  actionText?: string; // 操作按钮文本
+  actionIcon?: any; // 操作按钮图标
+}>();
 
 // 定义组件事件
 const emit = defineEmits<{
-  action: [] // 操作按钮点击事件
-}>()
+  action: []; // 操作按钮点击事件
+}>();
 </script>
 
 <template>
   <!-- 空状态容器 -->
   <div class="empty-state-container">
     <!-- Naive UI空状态组件 -->
-    <n-empty 
-      :description="description || '暂无数据'" 
-      size="large"
-    >
+    <n-empty :description="description || '暂无数据'" size="large">
       <!-- 自定义图标插槽 -->
       <template #icon>
         <div class="empty-icon">📭</div>
@@ -38,7 +35,7 @@ const emit = defineEmits<{
           <template #icon v-if="actionIcon">
             <n-icon :component="actionIcon" />
           </template>
-          {{ actionText || '添加' }}
+          {{ actionText || "添加" }}
         </n-button>
       </template>
     </n-empty>

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * 文章分类实体类
- * 
+ * <p>
  * 存储博客文章的分类信息，用于组织和归类文章
  */
 @Data

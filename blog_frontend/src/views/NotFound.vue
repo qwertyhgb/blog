@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { NResult, NButton } from 'naive-ui'
+import { useRouter } from "vue-router";
+import { NResult, NButton } from "naive-ui";
 
-const router = useRouter()
+const router = useRouter();
 
 const goHome = () => {
-  router.push('/')
-}
+  router.push("/");
+};
 </script>
 
 <template>

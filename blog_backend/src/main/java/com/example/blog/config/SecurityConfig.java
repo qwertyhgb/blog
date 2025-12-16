@@ -1,7 +1,7 @@
 package com.example.blog.config;
 
 import com.example.blog.filter.JwtAuthenticationFilter;
-import com.example.blog.service.UserService;
+import com.example.blog.service.IUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -32,18 +32,18 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private final UserService userService;
+    private final IUserService userService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final PasswordEncoder passwordEncoder;
 
     /**
      * 构造函数，注入所需的服务和组件
      * 
-     * @param userService 用户服务，用于用户认证
+     * @param userService             用户服务，用于用户认证
      * @param jwtAuthenticationFilter JWT认证过滤器
-     * @param passwordEncoder 密码编码器
+     * @param passwordEncoder         密码编码器
      */
-    public SecurityConfig(UserService userService,
+    public SecurityConfig(IUserService userService,
             JwtAuthenticationFilter jwtAuthenticationFilter,
             PasswordEncoder passwordEncoder) {
         this.userService = userService;
@@ -97,6 +97,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/tags/**").permitAll() // 标签查看
                         .requestMatchers(HttpMethod.GET, "/comments/**").permitAll() // 评论查看
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll() // 文件访问
+                        // Swagger UI 和 OpenAPI 文档
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                                "/swagger-resources/**")
+                        .permitAll()
+                        // Actuator 健康检查端点
+                        .requestMatchers("/actuator/**").permitAll()
                         // 管理员路径需要ADMIN角色
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 其他请求需要认证

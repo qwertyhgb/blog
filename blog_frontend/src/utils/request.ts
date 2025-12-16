@@ -56,7 +56,7 @@ const onTokenRefreshed = (token: string) => {
   },
   (error: any) => {
     return Promise.reject(error);
-  },
+  }
 );
 
 // 响应拦截器
@@ -151,9 +151,7 @@ const onTokenRefreshed = (token: string) => {
             message.error("服务器内部错误");
             break;
           default:
-            message.error(
-              `请求失败: ${error.response.data?.message || "未知错误"}`,
-            );
+            message.error(`请求失败: ${error.response.data?.message || "未知错误"}`);
         }
       }
     } else {
@@ -162,7 +160,7 @@ const onTokenRefreshed = (token: string) => {
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 // 基于axios实例封装带泛型的请求方法

@@ -1,73 +1,73 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { 
-  NForm, 
-  NFormItem, 
-  NInput, 
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
+import {
+  NForm,
+  NFormItem,
+  NInput,
   NButton,
   NIcon,
   NCheckbox,
   NDivider,
   useMessage,
-  type FormInst
-} from 'naive-ui'
-import { PersonOutline, LockClosedOutline } from '@vicons/ionicons5'
+  type FormInst,
+} from "naive-ui";
+import { PersonOutline, LockClosedOutline } from "@vicons/ionicons5";
 
-const router = useRouter()
-const userStore = useUserStore()
-const message = useMessage()
+const router = useRouter();
+const userStore = useUserStore();
+const message = useMessage();
 
-const loading = ref(false)
-const loginFormRef = ref<FormInst | null>(null)
-const rememberMe = ref(false)
+const loading = ref(false);
+const loginFormRef = ref<FormInst | null>(null);
+const rememberMe = ref(false);
 
 const loginForm = reactive({
-  username: '',
-  password: ''
-})
+  username: "",
+  password: "",
+});
 
 const loginRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 3, max: 20, message: "长度在 3 到 20 个字符", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-  ]
-}
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, max: 20, message: "长度在 6 到 20 个字符", trigger: "blur" },
+  ],
+};
 
 const handleLogin = (e: Event) => {
-  e.preventDefault()
+  e.preventDefault();
   loginFormRef.value?.validate(async (errors) => {
     if (!errors) {
       try {
-        loading.value = true
-        await userStore.login(loginForm)
-        message.success('登录成功')
-        router.push('/')
+        loading.value = true;
+        await userStore.login(loginForm);
+        message.success("登录成功");
+        router.push("/");
       } catch (error: any) {
-        message.error(error.message || '登录失败')
+        message.error(error.message || "登录失败");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
-  })
-}
+  });
+};
 
 const goToRegister = () => {
-  router.push('/register')
-}
+  router.push("/register");
+};
 
 const quickLogin = (type: string) => {
-  if (type === 'admin') {
-    loginForm.username = 'admin'
-    loginForm.password = 'admin123'
-    handleLogin(new Event('click'))
+  if (type === "admin") {
+    loginForm.username = "admin";
+    loginForm.password = "admin123";
+    handleLogin(new Event("click"));
   }
-}
+};
 </script>
 
 <template>
@@ -109,13 +109,8 @@ const quickLogin = (type: string) => {
           <h1 class="auth-title">欢迎回来</h1>
           <p class="auth-subtitle">登录以继续你的创作之旅</p>
         </div>
-        
-        <n-form
-          ref="loginFormRef"
-          :model="loginForm"
-          :rules="loginRules"
-          :show-label="false"
-        >
+
+        <n-form ref="loginFormRef" :model="loginForm" :rules="loginRules" :show-label="false">
           <n-form-item path="username">
             <n-input
               v-model:value="loginForm.username"
@@ -128,7 +123,7 @@ const quickLogin = (type: string) => {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="password">
             <n-input
               v-model:value="loginForm.password"
@@ -148,7 +143,7 @@ const quickLogin = (type: string) => {
           <div class="form-options">
             <n-checkbox v-model:checked="rememberMe">记住我</n-checkbox>
           </div>
-          
+
           <n-button
             type="primary"
             block
@@ -160,7 +155,7 @@ const quickLogin = (type: string) => {
             登录
           </n-button>
         </n-form>
-        
+
         <n-divider style="margin: 24px 0">
           <span style="font-size: 12px; color: var(--text-tertiary)">或</span>
         </n-divider>
@@ -173,7 +168,7 @@ const quickLogin = (type: string) => {
             管理员快速登录
           </n-button>
         </div>
-        
+
         <div class="auth-footer">
           <span>还没有账号？</span>
           <n-button text type="primary" @click="goToRegister" strong>立即注册</n-button>

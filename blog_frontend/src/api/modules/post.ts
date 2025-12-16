@@ -34,11 +34,7 @@ export const postApi = {
 
   // 管理后台：获取所有文章（包括草稿）
 
-  getAdminPosts: (params?: {
-    page?: number;
-    size?: number;
-    keyword?: string;
-  }) => {
+  getAdminPosts: (params?: { page?: number; size?: number; keyword?: string }) => {
     return request<PageResult<Post>>({
       url: "/posts/admin",
 

@@ -1,95 +1,93 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { 
-  NForm, 
-  NFormItem, 
-  NInput, 
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
+import {
+  NForm,
+  NFormItem,
+  NInput,
   NButton,
   NIcon,
   NCheckbox,
   useMessage,
-  type FormInst
-} from 'naive-ui'
-import { PersonOutline, LockClosedOutline, MailOutline } from '@vicons/ionicons5'
+  type FormInst,
+} from "naive-ui";
+import { PersonOutline, LockClosedOutline, MailOutline } from "@vicons/ionicons5";
 
-const router = useRouter()
-const userStore = useUserStore()
-const message = useMessage()
+const router = useRouter();
+const userStore = useUserStore();
+const message = useMessage();
 
-const loading = ref(false)
-const registerFormRef = ref<FormInst | null>(null)
-const agreeTerms = ref(false)
+const loading = ref(false);
+const registerFormRef = ref<FormInst | null>(null);
+const agreeTerms = ref(false);
 
 const registerForm = reactive({
-  username: '',
-  nickname: '',
-  email: '',
-  password: '',
-  confirmPassword: ''
-})
+  username: "",
+  nickname: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+});
 
 const checkPassword = (_rule: any, value: string) => {
   return new Promise<void>((resolve, reject) => {
-    if (value === '') {
-      reject(new Error('请再次输入密码'))
+    if (value === "") {
+      reject(new Error("请再次输入密码"));
     } else if (value !== registerForm.password) {
-      reject(new Error('两次输入密码不一致'))
+      reject(new Error("两次输入密码不一致"));
     } else {
-      resolve()
+      resolve();
     }
-  })
-}
+  });
+};
 
 const registerRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 3, max: 20, message: "长度在 3 到 20 个字符", trigger: "blur" },
   ],
   nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入昵称", trigger: "blur" },
+    { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
   email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email' as const, message: '请输入正确的邮箱格式', trigger: 'blur' }
+    { required: true, message: "请输入邮箱", trigger: "blur" },
+    { type: "email" as const, message: "请输入正确的邮箱格式", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, max: 20, message: "长度在 6 到 20 个字符", trigger: "blur" },
   ],
-  confirmPassword: [
-    { required: true, validator: checkPassword, trigger: 'blur' }
-  ]
-}
+  confirmPassword: [{ required: true, validator: checkPassword, trigger: "blur" }],
+};
 
 const handleRegister = (e: Event) => {
-  e.preventDefault()
+  e.preventDefault();
   registerFormRef.value?.validate(async (errors) => {
     if (!errors) {
       try {
-        loading.value = true
+        loading.value = true;
         await userStore.register({
           username: registerForm.username,
           nickname: registerForm.nickname,
           email: registerForm.email,
-          password: registerForm.password
-        })
-        message.success('注册成功，请登录')
-        router.push('/login')
+          password: registerForm.password,
+        });
+        message.success("注册成功，请登录");
+        router.push("/login");
       } catch (error: any) {
-        message.error(error.message || '注册失败')
+        message.error(error.message || "注册失败");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
-  })
-}
+  });
+};
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 </script>
 
 <template>
@@ -131,7 +129,7 @@ const goToLogin = () => {
           <h1 class="auth-title">创建账号</h1>
           <p class="auth-subtitle">填写以下信息开始使用</p>
         </div>
-        
+
         <n-form
           ref="registerFormRef"
           :model="registerForm"
@@ -150,7 +148,7 @@ const goToLogin = () => {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="nickname">
             <n-input
               v-model:value="registerForm.nickname"
@@ -162,7 +160,7 @@ const goToLogin = () => {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="email">
             <n-input
               v-model:value="registerForm.email"
@@ -175,7 +173,7 @@ const goToLogin = () => {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="password">
             <n-input
               v-model:value="registerForm.password"
@@ -190,7 +188,7 @@ const goToLogin = () => {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="confirmPassword">
             <n-input
               v-model:value="registerForm.confirmPassword"
@@ -208,10 +206,11 @@ const goToLogin = () => {
 
           <div class="terms">
             <n-checkbox v-model:checked="agreeTerms">
-              我已阅读并同意<n-button text type="primary" size="small">服务条款</n-button>和<n-button text type="primary" size="small">隐私政策</n-button>
+              我已阅读并同意<n-button text type="primary" size="small">服务条款</n-button
+              >和<n-button text type="primary" size="small">隐私政策</n-button>
             </n-checkbox>
           </div>
-          
+
           <n-button
             type="primary"
             block
@@ -224,7 +223,7 @@ const goToLogin = () => {
             注册
           </n-button>
         </n-form>
-        
+
         <div class="auth-footer">
           <span>已有账号？</span>
           <n-button text type="primary" @click="goToLogin" strong>立即登录</n-button>
@@ -238,7 +237,7 @@ const goToLogin = () => {
 .auth-container {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-color);
+  background-color: #f5f5f5;
 }
 
 .auth-left {
@@ -310,7 +309,7 @@ const goToLogin = () => {
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background-color: var(--bg-color);
+  background-color: #ffffff;
 }
 
 .auth-card {
@@ -325,13 +324,13 @@ const goToLogin = () => {
 .auth-title {
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-color);
+  color: #333333;
   margin-bottom: 8px;
 }
 
 .auth-subtitle {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #666666;
   line-height: 1.6;
 }
 
@@ -344,7 +343,7 @@ const goToLogin = () => {
   margin-top: 24px;
   text-align: center;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #999999;
 }
 
 @media (min-width: 1024px) {

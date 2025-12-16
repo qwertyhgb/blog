@@ -1,71 +1,69 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
-import { useCategoryStore } from '@/stores/category'
-import { 
-  NButton, 
-  NDataTable, 
-  NModal, 
-  NForm, 
-  NFormItem, 
-  NInput, 
+import { ref, onMounted, h } from "vue";
+import { useCategoryStore } from "@/stores/category";
+import {
+  NButton,
+  NDataTable,
+  NModal,
+  NForm,
+  NFormItem,
+  NInput,
   NCard,
   NSpace,
   useMessage,
   useDialog,
   type FormInst,
-  type DataTableColumns
-} from 'naive-ui'
-import { AddOutline, CreateOutline, TrashOutline } from '@vicons/ionicons5'
+  type DataTableColumns,
+} from "naive-ui";
+import { AddOutline, CreateOutline, TrashOutline } from "@vicons/ionicons5";
 
-const categoryStore = useCategoryStore()
-const message = useMessage()
-const dialog = useDialog()
+const categoryStore = useCategoryStore();
+const message = useMessage();
+const dialog = useDialog();
 
-const loading = ref(false)
-const showModal = ref(false)
-const isEdit = ref(false)
-const currentCategoryId = ref<number | null>(null)
+const loading = ref(false);
+const showModal = ref(false);
+const isEdit = ref(false);
+const currentCategoryId = ref<number | null>(null);
 
-const categoryFormRef = ref<FormInst | null>(null)
+const categoryFormRef = ref<FormInst | null>(null);
 const categoryForm = ref({
-  name: '',
-  description: ''
-})
+  name: "",
+  description: "",
+});
 
 const categoryRules = {
   name: [
-    { required: true, message: '请输入分类名称', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入分类名称", trigger: "blur" },
+    { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
-  description: [
-    { max: 200, message: '描述最多200个字符', trigger: 'blur' }
-  ]
-}
+  description: [{ max: 200, message: "描述最多200个字符", trigger: "blur" }],
+};
 
 const columns: DataTableColumns = [
   {
-    title: 'ID',
-    key: 'id',
-    width: 80
+    title: "ID",
+    key: "id",
+    width: 80,
   },
   {
-    title: '分类名称',
-    key: 'name',
-    minWidth: 150
+    title: "分类名称",
+    key: "name",
+    minWidth: 150,
   },
   {
-    title: '描述',
-    key: 'description',
-    minWidth: 200
+    title: "描述",
+    key: "description",
+    minWidth: 200,
   },
   {
-    title: '文章数量',
-    key: 'postCount',
-    width: 120
+    title: "文章数量",
+    key: "postCount",
+    width: 120,
   },
   {
-    title: '操作',
-    key: 'actions',
+    title: "操作",
+    key: "actions",
     width: 150,
     render(row: any) {
       return h(
@@ -76,112 +74,112 @@ const columns: DataTableColumns = [
             h(
               NButton,
               {
-                size: 'small',
-                type: 'primary',
+                size: "small",
+                type: "primary",
                 secondary: true,
-                onClick: () => showEditDialog(row)
+                onClick: () => showEditDialog(row),
               },
-              { icon: () => h(CreateOutline), default: () => '编辑' }
+              { icon: () => h(CreateOutline), default: () => "编辑" }
             ),
             h(
               NButton,
               {
-                size: 'small',
-                type: 'error',
+                size: "small",
+                type: "error",
                 secondary: true,
-                onClick: () => deleteCategory(row.id)
+                onClick: () => deleteCategory(row.id),
               },
-              { icon: () => h(TrashOutline), default: () => '删除' }
-            )
-          ]
+              { icon: () => h(TrashOutline), default: () => "删除" }
+            ),
+          ],
         }
-      )
-    }
-  }
-]
+      );
+    },
+  },
+];
 
 // 方法
 const fetchCategories = async () => {
   try {
-    loading.value = true
-    await categoryStore.fetchCategories()
+    loading.value = true;
+    await categoryStore.fetchCategories();
   } catch (error) {
-    console.error('获取分类列表失败:', error)
-    message.error('获取分类列表失败')
+    console.error("获取分类列表失败:", error);
+    message.error("获取分类列表失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const showCreateDialog = () => {
-  isEdit.value = false
-  currentCategoryId.value = null
+  isEdit.value = false;
+  currentCategoryId.value = null;
   categoryForm.value = {
-    name: '',
-    description: ''
-  }
-  showModal.value = true
-}
+    name: "",
+    description: "",
+  };
+  showModal.value = true;
+};
 
 const showEditDialog = (category: any) => {
-  isEdit.value = true
-  currentCategoryId.value = category.id
+  isEdit.value = true;
+  currentCategoryId.value = category.id;
   categoryForm.value = {
     name: category.name,
-    description: category.description || ''
-  }
-  showModal.value = true
-}
+    description: category.description || "",
+  };
+  showModal.value = true;
+};
 
 const submitCategory = async () => {
-  if (!categoryFormRef.value) return
-  
+  if (!categoryFormRef.value) return;
+
   categoryFormRef.value.validate(async (errors) => {
     if (!errors) {
       try {
         if (isEdit.value && currentCategoryId.value) {
-          await categoryStore.updateCategory(currentCategoryId.value, categoryForm.value)
-          message.success('更新成功')
+          await categoryStore.updateCategory(currentCategoryId.value, categoryForm.value);
+          message.success("更新成功");
         } else {
-          await categoryStore.createCategory(categoryForm.value)
-          message.success('创建成功')
+          await categoryStore.createCategory(categoryForm.value);
+          message.success("创建成功");
         }
-        
-        showModal.value = false
-        fetchCategories()
+
+        showModal.value = false;
+        fetchCategories();
       } catch (error: any) {
-        message.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        message.error(error.message || (isEdit.value ? "更新失败" : "创建失败"));
       }
     }
-  })
-}
+  });
+};
 
 const deleteCategory = async (id: number) => {
   dialog.warning({
-    title: '提示',
-    content: '确定要删除这个分类吗？',
-    positiveText: '确定',
-    negativeText: '取消',
+    title: "提示",
+    content: "确定要删除这个分类吗？",
+    positiveText: "确定",
+    negativeText: "取消",
     onPositiveClick: async () => {
       try {
-        await categoryStore.deleteCategory(id)
-        message.success('删除成功')
-        fetchCategories()
+        await categoryStore.deleteCategory(id);
+        message.success("删除成功");
+        fetchCategories();
       } catch (error: any) {
-        message.error(error.message || '删除失败')
+        message.error(error.message || "删除失败");
       }
-    }
-  })
-}
+    },
+  });
+};
 
 const cancelDialog = () => {
-  showModal.value = false
-}
+  showModal.value = false;
+};
 
 // 初始化
 onMounted(() => {
-  fetchCategories()
-})
+  fetchCategories();
+});
 </script>
 
 <template>
@@ -195,7 +193,7 @@ onMounted(() => {
         新建分类
       </n-button>
     </div>
-    
+
     <div class="category-table">
       <n-data-table
         :columns="columns"
@@ -205,7 +203,7 @@ onMounted(() => {
         :single-line="false"
       />
     </div>
-    
+
     <n-modal v-model:show="showModal">
       <n-card
         style="width: 500px"
@@ -225,7 +223,7 @@ onMounted(() => {
           <n-form-item label="分类名称" path="name">
             <n-input v-model:value="categoryForm.name" placeholder="请输入分类名称" />
           </n-form-item>
-          
+
           <n-form-item label="描述" path="description">
             <n-input
               v-model:value="categoryForm.description"
@@ -235,7 +233,7 @@ onMounted(() => {
             />
           </n-form-item>
         </n-form>
-        
+
         <template #footer>
           <n-space justify="end">
             <n-button @click="cancelDialog">取消</n-button>

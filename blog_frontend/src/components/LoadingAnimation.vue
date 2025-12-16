@@ -1,16 +1,16 @@
 <script setup lang="ts">
 // 导入Vue组合式API
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 
 // 控制加载动画显示状态
-const show = ref(true)
+const show = ref(true);
 
 // 组件挂载后设置定时器，1.5秒后隐藏加载动画
 onMounted(() => {
   setTimeout(() => {
-    show.value = false
-  }, 1500)
-})
+    show.value = false;
+  }, 1500);
+});
 </script>
 
 <template>
@@ -85,7 +85,9 @@ onMounted(() => {
 
 /* 圆圈弹跳动画 */
 @keyframes bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0);
     opacity: 0.5;
   }
@@ -106,7 +108,8 @@ onMounted(() => {
 
 /* 文本脉冲动画 */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

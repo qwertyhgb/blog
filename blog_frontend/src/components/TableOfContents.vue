@@ -1,80 +1,82 @@
 <script setup lang="ts">
 // 导入Vue组合式API
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 // 导入Naive UI组件
-import { NIcon } from 'naive-ui'
+import { NIcon } from "naive-ui";
 // 导入图标组件
-import { ListOutline } from '@vicons/ionicons5'
+import { ListOutline } from "@vicons/ionicons5";
 
 // 目录项接口定义
 interface TocItem {
-  id: string // 标题ID
-  text: string // 标题文本
-  level: number // 标题级别
+  id: string; // 标题ID
+  text: string; // 标题文本
+  level: number; // 标题级别
 }
 
 // 目录项列表和当前激活的标题ID
-const tocItems = ref<TocItem[]>([])
-const activeId = ref('')
+const tocItems = ref<TocItem[]>([]);
+const activeId = ref("");
 
 // 生成目录
 const generateToc = () => {
   // 获取文章内容容器
-  const article = document.querySelector('.markdown-body')
-  if (!article) return
+  const article = document.querySelector(".markdown-body");
+  if (!article) return;
 
   // 获取所有标题元素
-  const headings = article.querySelectorAll('h1, h2, h3')
+  const headings = article.querySelectorAll("h1, h2, h3");
   // 将标题转换为目录项
   tocItems.value = Array.from(headings).map((heading, index) => {
-    const id = `heading-${index}`
-    heading.id = id
+    const id = `heading-${index}`;
+    heading.id = id;
     return {
       id,
-      text: heading.textContent || '',
-      level: parseInt(heading.tagName.substring(1))
-    }
-  })
-}
+      text: heading.textContent || "",
+      level: parseInt(heading.tagName.substring(1)),
+    };
+  });
+};
 
 // 更新当前激活的标题
 const updateActiveHeading = () => {
   // 获取所有标题元素
-  const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3')
-  let currentId = ''
+  const headings = document.querySelectorAll(
+    ".markdown-body h1, .markdown-body h2, .markdown-body h3"
+  );
+  let currentId = "";
 
   // 遍历标题，找到当前视口中的标题
   headings.forEach((heading) => {
-    const rect = heading.getBoundingClientRect()
+    const rect = heading.getBoundingClientRect();
     if (rect.top <= 100) {
-      currentId = heading.id
+      currentId = heading.id;
     }
-  })
+  });
 
-  activeId.value = currentId
-}
+  activeId.value = currentId;
+};
 
 // 滚动到指定标题
 const scrollToHeading = (id: string) => {
-  const element = document.getElementById(id)
+  const element = document.getElementById(id);
   if (element) {
     // 计算滚动位置，考虑固定头部的高度
-    const top = element.offsetTop - 80
-    window.scrollTo({ top, behavior: 'smooth' })
+    const top = element.offsetTop - 80;
+    window.scrollTo({ top, behavior: "smooth" });
   }
-}
+};
 
 // 组件挂载时初始化目录和添加滚动监听
 onMounted(() => {
   // 延迟生成目录，确保DOM已渲染
-  setTimeout(generateToc, 500)
-  window.addEventListener('scroll', updateActiveHeading)
-})
+  setTimeout(generateToc, 500);
+  window.addEventListener("scroll", updateActiveHeading);
+});
 
 // 组件卸载时移除滚动监听
 onUnmounted(() => {
-  window.removeEventListener('scroll', updateActiveHeading)
-})
+  window.removeEventListener("scroll", updateActiveHeading);
+});
 </script>
 
 <template>
@@ -93,9 +95,9 @@ onUnmounted(() => {
         v-for="item in tocItems"
         :key="item.id"
         class="toc-item"
-        :class="{ 
+        :class="{
           active: activeId === item.id, // 当前激活状态
-          [`level-${item.level}`]: true // 根据标题级别设置样式
+          [`level-${item.level}`]: true, // 根据标题级别设置样式
         }"
         @click="scrollToHeading(item.id)"
       >

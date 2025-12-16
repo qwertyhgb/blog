@@ -1,160 +1,154 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/post'
-import { useCategoryStore, useTagStore } from '@/stores/category'
-import { 
-  NButton, 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NSelect, 
-  NCard, 
-  NIcon, 
+import { ref, reactive, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { usePostStore } from "@/stores/post";
+import { useCategoryStore, useTagStore } from "@/stores/category";
+import {
+  NButton,
+  NForm,
+  NFormItem,
+  NInput,
+  NSelect,
+  NCard,
+  NIcon,
   useMessage,
-  type FormInst
-} from 'naive-ui'
-import { ArrowBackOutline, AddOutline } from '@vicons/ionicons5'
+  type FormInst,
+} from "naive-ui";
+import { ArrowBackOutline, AddOutline } from "@vicons/ionicons5";
 
-const route = useRoute()
-const router = useRouter()
-const postStore = usePostStore()
-const categoryStore = useCategoryStore()
-const tagStore = useTagStore()
-const message = useMessage()
+const route = useRoute();
+const router = useRouter();
+const postStore = usePostStore();
+const categoryStore = useCategoryStore();
+const tagStore = useTagStore();
+const message = useMessage();
 
-const postId = computed(() => Number(route.params.id))
-const isEdit = computed(() => !!postId.value)
-const categories = computed(() => categoryStore.categories)
-const tags = computed(() => tagStore.tags)
+const postId = computed(() => Number(route.params.id));
+const isEdit = computed(() => !!postId.value);
+const categories = computed(() => categoryStore.categories);
+const tags = computed(() => tagStore.tags);
 
-const loading = ref(false)
-const submitting = ref(false)
-const postFormRef = ref<FormInst | null>(null)
+const loading = ref(false);
+const submitting = ref(false);
+const postFormRef = ref<FormInst | null>(null);
 
 const postForm = reactive({
-  title: '',
-  content: '',
-  summary: '',
+  title: "",
+  content: "",
+  summary: "",
   categoryId: null as number | null,
-  tagIds: [] as number[]
-})
+  tagIds: [] as number[],
+});
 
 const postRules = {
   title: [
-    { required: true, message: '请输入文章标题', trigger: 'blur' },
-    { min: 5, max: 100, message: '长度在 5 到 100 个字符', trigger: 'blur' }
+    { required: true, message: "请输入文章标题", trigger: "blur" },
+    { min: 5, max: 100, message: "长度在 5 到 100 个字符", trigger: "blur" },
   ],
   content: [
-    { required: true, message: '请输入文章内容', trigger: 'blur' },
-    { min: 10, message: '内容至少10个字符', trigger: 'blur' }
+    { required: true, message: "请输入文章内容", trigger: "blur" },
+    { min: 10, message: "内容至少10个字符", trigger: "blur" },
   ],
-  summary: [
-    { max: 500, message: '摘要最多500个字符', trigger: 'blur' }
-  ],
+  summary: [{ max: 500, message: "摘要最多500个字符", trigger: "blur" }],
   categoryId: [
-    { required: true, type: 'number' as const, message: '请选择文章分类', trigger: 'change' }
-  ]
-}
+    { required: true, type: "number" as const, message: "请选择文章分类", trigger: "change" },
+  ],
+};
 
-const newTagInput = ref('')
-const showNewTagInput = ref(false)
+const newTagInput = ref("");
+const showNewTagInput = ref(false);
 
 // 方法
 const fetchPost = async () => {
-  if (!isEdit.value) return
-  
+  if (!isEdit.value) return;
+
   try {
-    loading.value = true
-    await postStore.fetchPostById(postId.value)
-    const post = postStore.currentPost
-    
+    loading.value = true;
+    await postStore.fetchPostById(postId.value);
+    const post = postStore.currentPost;
+
     if (post) {
-      postForm.title = post.title
-      postForm.content = post.content
-      postForm.summary = post.summary || ''
-      postForm.categoryId = post.category?.id || null
-      postForm.tagIds = post.tags?.map((tag: any) => tag.id) || []
+      postForm.title = post.title;
+      postForm.content = post.content;
+      postForm.summary = post.summary || "";
+      postForm.categoryId = post.category?.id || null;
+      postForm.tagIds = post.tags?.map((tag: any) => tag.id) || [];
     }
   } catch (error: any) {
-    message.error(error.message || '获取文章详情失败')
-    router.push('/admin/posts')
+    message.error(error.message || "获取文章详情失败");
+    router.push("/admin/posts");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const submitPost = (e: MouseEvent) => {
-  e.preventDefault()
+  e.preventDefault();
   postFormRef.value?.validate(async (errors) => {
     if (!errors) {
       try {
-        submitting.value = true
-        
+        submitting.value = true;
+
         const postData = {
           title: postForm.title,
           content: postForm.content,
           summary: postForm.summary,
           categoryId: postForm.categoryId,
-          tagIds: postForm.tagIds
-        }
-        
+          tagIds: postForm.tagIds,
+        };
+
         if (isEdit.value) {
-          await postStore.updatePost(postId.value, postData)
-          message.success('更新成功')
+          await postStore.updatePost(postId.value, postData);
+          message.success("更新成功");
         } else {
-          await postStore.createPost(postData)
-          message.success('创建成功')
+          await postStore.createPost(postData);
+          message.success("创建成功");
         }
-        
-        router.back()
+
+        router.back();
       } catch (error: any) {
-        message.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        message.error(error.message || (isEdit.value ? "更新失败" : "创建失败"));
       } finally {
-        submitting.value = false
+        submitting.value = false;
       }
     }
-  })
-}
+  });
+};
 
 const goBack = () => {
-  router.back()
-}
+  router.back();
+};
 
 const showAddTag = () => {
-  showNewTagInput.value = true
-}
+  showNewTagInput.value = true;
+};
 
 const addNewTag = async () => {
   if (!newTagInput.value.trim()) {
-    message.warning('请输入标签名称')
-    return
+    message.warning("请输入标签名称");
+    return;
   }
-  
+
   try {
-    await tagStore.createTag({ name: newTagInput.value.trim() })
-    message.success('标签添加成功')
-    newTagInput.value = ''
-    showNewTagInput.value = false
-    await tagStore.fetchTags()
+    await tagStore.createTag({ name: newTagInput.value.trim() });
+    message.success("标签添加成功");
+    newTagInput.value = "";
+    showNewTagInput.value = false;
+    await tagStore.fetchTags();
   } catch (error: any) {
-    message.error(error.message || '添加标签失败')
+    message.error(error.message || "添加标签失败");
   }
-}
+};
 
 const cancelAddTag = () => {
-  newTagInput.value = ''
-  showNewTagInput.value = false
-}
+  newTagInput.value = "";
+  showNewTagInput.value = false;
+};
 
 // 初始化
 onMounted(async () => {
-  await Promise.all([
-    categoryStore.fetchCategories(),
-    tagStore.fetchTags(),
-    fetchPost()
-  ])
-})
+  await Promise.all([categoryStore.fetchCategories(), tagStore.fetchTags(), fetchPost()]);
+});
 </script>
 
 <template>
@@ -169,7 +163,7 @@ onMounted(async () => {
       <div class="header-actions">
         <n-button @click="goBack">取消</n-button>
         <n-button type="primary" :loading="submitting" @click="submitPost">
-          {{ isEdit ? '更新' : '发布' }}
+          {{ isEdit ? "更新" : "发布" }}
         </n-button>
       </div>
     </div>
@@ -186,10 +180,10 @@ onMounted(async () => {
       <div class="metadata-section">
         <div class="metadata-item">
           <span class="label">分类</span>
-          <n-select 
-            v-model:value="postForm.categoryId" 
-            :options="categories.map(c => ({ label: c.name, value: c.id }))"
-            placeholder="选择分类" 
+          <n-select
+            v-model:value="postForm.categoryId"
+            :options="categories.map((c) => ({ label: c.name, value: c.id }))"
+            placeholder="选择分类"
             size="small"
             style="width: 200px"
           />
@@ -200,7 +194,7 @@ onMounted(async () => {
           <n-select
             v-model:value="postForm.tagIds"
             multiple
-            :options="tags.map(t => ({ label: t.name, value: t.id }))"
+            :options="tags.map((t) => ({ label: t.name, value: t.id }))"
             placeholder="选择标签"
             size="small"
             style="width: 300px"

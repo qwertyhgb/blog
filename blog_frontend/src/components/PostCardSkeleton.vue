@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // 导入Naive UI的骨架屏组件
-import { NSkeleton } from 'naive-ui'
+import { NSkeleton } from "naive-ui";
 </script>
 
 <template>
@@ -23,12 +23,12 @@ import { NSkeleton } from 'naive-ui'
       <!-- 文章状态标签骨架屏 -->
       <n-skeleton text style="width: 60px; height: 24px; border-radius: 12px" />
     </div>
-    
+
     <!-- 文章标题骨架屏 -->
     <n-skeleton text style="width: 70%; height: 24px; margin-bottom: 12px" />
     <!-- 文章摘要骨架屏 -->
     <n-skeleton text :repeat="2" style="margin-bottom: 20px" />
-    
+
     <!-- 骨架屏底部：包含统计信息和标签 -->
     <div class="skeleton-footer">
       <!-- 统计信息骨架屏 -->

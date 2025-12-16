@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/post'
-import { useCategoryStore } from '@/stores/category'
-import { useUserStore } from '@/stores/user'
-import { 
-  NTag, 
-  NIcon, 
+import { ref, onMounted, computed, watch, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { usePostStore } from "@/stores/post";
+import { useCategoryStore } from "@/stores/category";
+import { useUserStore } from "@/stores/user";
+import {
+  NTag,
+  NIcon,
   NInput,
   NPagination,
   NSpace,
@@ -14,9 +14,9 @@ import {
   NAvatar,
   NGrid,
   NGridItem,
-  NBadge
-} from 'naive-ui'
-import { 
+  NBadge,
+} from "naive-ui";
+import {
   TimeOutline,
   SearchOutline,
   CreateOutline,
@@ -24,177 +24,172 @@ import {
   HeartOutline,
   ChatbubbleOutline,
   TrendingUpOutline,
-  FlameOutline
-} from '@vicons/ionicons5'
-import EmptyState from '@/components/EmptyState.vue'
-import PostCardSkeleton from '@/components/PostCardSkeleton.vue'
-import BackTop from '@/components/BackTop.vue'
+  FlameOutline,
+} from "@vicons/ionicons5";
+import EmptyState from "@/components/EmptyState.vue";
+import PostCardSkeleton from "@/components/PostCardSkeleton.vue";
+import BackTop from "@/components/BackTop.vue";
 
-const router = useRouter()
-const postStore = usePostStore()
-const categoryStore = useCategoryStore()
-const userStore = useUserStore()
+const router = useRouter();
+const postStore = usePostStore();
+const categoryStore = useCategoryStore();
+const userStore = useUserStore();
 
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const searchKeyword = ref('')
-const selectedCategory = ref<number | null>(null)
-const sortBy = ref<'latest' | 'popular' | 'trending'>('latest')
+const loading = ref(false);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const searchKeyword = ref("");
+const selectedCategory = ref<number | null>(null);
+const sortBy = ref<"latest" | "popular" | "trending">("latest");
 
-const posts = computed(() => postStore.posts)
-const categories = computed(() => categoryStore.categories)
-const isLoggedIn = computed(() => userStore.isLoggedIn)
+const posts = computed(() => postStore.posts);
+const categories = computed(() => categoryStore.categories);
+const isLoggedIn = computed(() => userStore.isLoggedIn);
 
 // 热门文章（按浏览量排序）
 const popularPosts = computed(() => {
-  return [...posts.value]
-    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-    .slice(0, 3)
-})
+  return [...posts.value].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 3);
+});
 
 const fetchPosts = async (page: number) => {
   try {
-    loading.value = true
+    loading.value = true;
     await postStore.fetchPosts({
       page,
       size: pageSize.value,
-      keyword: searchKeyword.value
-    })
+      keyword: searchKeyword.value,
+    });
   } catch (error) {
-    console.error('获取文章列表失败:', error)
+    console.error("获取文章列表失败:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const filteredPosts = computed(() => {
-  let result = [...posts.value]
-  
+  let result = [...posts.value];
+
   // 分类筛选
   if (selectedCategory.value) {
-    result = result.filter(post => post.category?.id === selectedCategory.value)
+    result = result.filter((post) => post.category?.id === selectedCategory.value);
   }
-  
+
   // 排序
-  if (sortBy.value === 'popular') {
-    result.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-  } else if (sortBy.value === 'trending') {
-    result.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+  if (sortBy.value === "popular") {
+    result.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+  } else if (sortBy.value === "trending") {
+    result.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
   }
-  
-  return result
-})
+
+  return result;
+});
 
 const selectCategory = (categoryId: number | null) => {
-  selectedCategory.value = categoryId
-}
+  selectedCategory.value = categoryId;
+};
 
-const changeSortBy = (sort: 'latest' | 'popular' | 'trending') => {
-  sortBy.value = sort
-}
+const changeSortBy = (sort: "latest" | "popular" | "trending") => {
+  sortBy.value = sort;
+};
 
 const goToPostDetail = (id: number) => {
-  router.push(`/post/${id}`)
-}
+  router.push(`/post/${id}`);
+};
 
 // 预加载文章详情（鼠标悬停时）
 const preloadPost = (id: number) => {
   // 可以在这里预加载文章数据
   postStore.fetchPostById(id).catch(() => {
     // 静默失败，不影响用户体验
-  })
-}
+  });
+};
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (days === 0) return '今天'
-  if (days === 1) return '昨天'
-  if (days < 7) return `${days}天前`
-  if (days < 30) return `${Math.floor(days / 7)}周前`
-  if (days < 365) return `${Math.floor(days / 30)}个月前`
-  return `${Math.floor(days / 365)}年前`
-}
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days === 0) return "今天";
+  if (days === 1) return "昨天";
+  if (days < 7) return `${days}天前`;
+  if (days < 30) return `${Math.floor(days / 7)}周前`;
+  if (days < 365) return `${Math.floor(days / 30)}个月前`;
+  return `${Math.floor(days / 365)}年前`;
+};
 
 const getReadingTime = (content: string) => {
-  const wordsPerMinute = 300
-  const words = content.length
-  const minutes = Math.ceil(words / wordsPerMinute)
-  return `${minutes} 分钟`
-}
+  const wordsPerMinute = 300;
+  const words = content.length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} 分钟`;
+};
 
 const formatNumber = (num: number) => {
   if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
+    return (num / 10000).toFixed(1) + "w";
   }
   if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
+    return (num / 1000).toFixed(1) + "k";
   }
-  return num.toString()
-}
+  return num.toString();
+};
 
 const handleSearch = () => {
-  currentPage.value = 1
-  fetchPosts(1)
-}
+  currentPage.value = 1;
+  fetchPosts(1);
+};
 
 const handlePageChange = (page: number) => {
-  currentPage.value = page
-  fetchPosts(page)
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
+  currentPage.value = page;
+  fetchPosts(page);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 
 // 搜索防抖
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(searchKeyword, (newVal) => {
-  if (searchTimeout) clearTimeout(searchTimeout)
+  if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    if (newVal !== searchKeyword.value) return
-    currentPage.value = 1
-    fetchPosts(1)
-  }, 500)
-})
+    if (newVal !== searchKeyword.value) return;
+    currentPage.value = 1;
+    fetchPosts(1);
+  }, 500);
+});
 
 // 监听分类和排序变化
 watch([selectedCategory, sortBy], () => {
   // 客户端筛选，不需要重新请求
-})
+});
 
 // 键盘快捷键
 const handleKeydown = (e: KeyboardEvent) => {
   // Ctrl/Cmd + K 聚焦搜索框
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault()
-    const searchInput = document.querySelector('.hero-search input') as HTMLInputElement
-    searchInput?.focus()
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+    e.preventDefault();
+    const searchInput = document.querySelector(".hero-search input") as HTMLInputElement;
+    searchInput?.focus();
   }
-  
+
   // Ctrl/Cmd + N 创建新文章（仅登录用户）
-  if ((e.ctrlKey || e.metaKey) && e.key === 'n' && isLoggedIn.value) {
-    e.preventDefault()
-    router.push('/post/edit')
+  if ((e.ctrlKey || e.metaKey) && e.key === "n" && isLoggedIn.value) {
+    e.preventDefault();
+    router.push("/post/edit");
   }
-}
+};
 
 onMounted(async () => {
-  await Promise.all([
-    fetchPosts(currentPage.value),
-    categoryStore.fetchCategories()
-  ])
-  
+  await Promise.all([fetchPosts(currentPage.value), categoryStore.fetchCategories()]);
+
   // 添加键盘事件监听
-  window.addEventListener('keydown', handleKeydown)
-})
+  window.addEventListener("keydown", handleKeydown);
+});
 
 // 清理
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  if (searchTimeout) clearTimeout(searchTimeout)
-})
+  window.removeEventListener("keydown", handleKeydown);
+  if (searchTimeout) clearTimeout(searchTimeout);
+});
 </script>
 
 <template>
@@ -204,7 +199,7 @@ onUnmounted(() => {
       <div class="hero-content">
         <h1 class="hero-title">发现精彩内容</h1>
         <p class="hero-subtitle">探索 {{ postStore.total }} 篇优质文章，开启你的阅读之旅</p>
-        
+
         <div class="hero-search">
           <n-input
             v-model:value="searchKeyword"
@@ -218,24 +213,12 @@ onUnmounted(() => {
               <n-icon :component="SearchOutline" :size="20" />
             </template>
           </n-input>
-          <n-button 
-            type="primary" 
-            size="large" 
-            round
-            @click="handleSearch"
-            strong
-          >
-            搜索
-          </n-button>
+          <n-button type="primary" size="large" round @click="handleSearch" strong> 搜索 </n-button>
         </div>
-        
+
         <div class="keyboard-hint" v-if="isLoggedIn">
-          <span class="hint-item">
-            <kbd>Ctrl</kbd> + <kbd>K</kbd> 搜索
-          </span>
-          <span class="hint-item">
-            <kbd>Ctrl</kbd> + <kbd>N</kbd> 写文章
-          </span>
+          <span class="hint-item"> <kbd>Ctrl</kbd> + <kbd>K</kbd> 搜索 </span>
+          <span class="hint-item"> <kbd>Ctrl</kbd> + <kbd>N</kbd> 写文章 </span>
         </div>
       </div>
     </div>
@@ -256,7 +239,9 @@ onUnmounted(() => {
           <div class="stat-card">
             <n-icon :component="EyeOutline" :size="24" class="stat-icon" />
             <div class="stat-content">
-              <div class="stat-value">{{ formatNumber(posts.reduce((sum, p) => sum + (p.viewCount || 0), 0)) }}</div>
+              <div class="stat-value">
+                {{ formatNumber(posts.reduce((sum, p) => sum + (p.viewCount || 0), 0)) }}
+              </div>
               <div class="stat-label">总阅读量</div>
             </div>
           </div>
@@ -265,7 +250,9 @@ onUnmounted(() => {
           <div class="stat-card">
             <n-icon :component="HeartOutline" :size="24" class="stat-icon" />
             <div class="stat-content">
-              <div class="stat-value">{{ formatNumber(posts.reduce((sum, p) => sum + (p.likeCount || 0), 0)) }}</div>
+              <div class="stat-value">
+                {{ formatNumber(posts.reduce((sum, p) => sum + (p.likeCount || 0), 0)) }}
+              </div>
               <div class="stat-label">总点赞数</div>
             </div>
           </div>
@@ -282,12 +269,21 @@ onUnmounted(() => {
       <n-grid :cols="3" :x-gap="16" :y-gap="16" responsive="screen">
         <n-grid-item v-for="(post, index) in popularPosts" :key="post.id">
           <div class="hot-post-card" @click="goToPostDetail(post.id)">
-            <n-badge :value="index + 1" :type="index === 0 ? 'error' : index === 1 ? 'warning' : 'info'">
+            <n-badge
+              :value="index + 1"
+              :type="index === 0 ? 'error' : index === 1 ? 'warning' : 'info'"
+            >
               <div class="hot-post-content">
                 <h3 class="hot-post-title">{{ post.title }}</h3>
                 <div class="hot-post-stats">
-                  <span><n-icon :component="EyeOutline" :size="14" /> {{ formatNumber(post.viewCount || 0) }}</span>
-                  <span><n-icon :component="HeartOutline" :size="14" /> {{ formatNumber(post.likeCount || 0) }}</span>
+                  <span
+                    ><n-icon :component="EyeOutline" :size="14" />
+                    {{ formatNumber(post.viewCount || 0) }}</span
+                  >
+                  <span
+                    ><n-icon :component="HeartOutline" :size="14" />
+                    {{ formatNumber(post.likeCount || 0) }}</span
+                  >
                 </div>
               </div>
             </n-badge>
@@ -300,7 +296,7 @@ onUnmounted(() => {
     <div class="filter-section">
       <div class="filter-left">
         <n-space>
-          <n-tag 
+          <n-tag
             :type="selectedCategory === null ? 'primary' : 'default'"
             :bordered="false"
             round
@@ -311,8 +307,8 @@ onUnmounted(() => {
           >
             全部
           </n-tag>
-          <n-tag 
-            v-for="category in categories" 
+          <n-tag
+            v-for="category in categories"
             :key="category.id"
             :type="selectedCategory === category.id ? 'primary' : 'default'"
             :bordered="false"
@@ -328,7 +324,7 @@ onUnmounted(() => {
       </div>
       <div class="filter-right">
         <n-space>
-          <n-button 
+          <n-button
             :type="sortBy === 'latest' ? 'primary' : 'default'"
             size="small"
             @click="changeSortBy('latest')"
@@ -336,7 +332,7 @@ onUnmounted(() => {
           >
             最新
           </n-button>
-          <n-button 
+          <n-button
             :type="sortBy === 'popular' ? 'primary' : 'default'"
             size="small"
             @click="changeSortBy('popular')"
@@ -347,7 +343,7 @@ onUnmounted(() => {
             </template>
             热门
           </n-button>
-          <n-button 
+          <n-button
             :type="sortBy === 'trending' ? 'primary' : 'default'"
             size="small"
             @click="changeSortBy('trending')"
@@ -368,7 +364,7 @@ onUnmounted(() => {
       </template>
 
       <template v-else>
-        <empty-state 
+        <empty-state
           v-if="filteredPosts.length === 0 && !searchKeyword"
           description="还没有文章，快去创建第一篇吧！"
           :show-action="isLoggedIn"
@@ -377,16 +373,16 @@ onUnmounted(() => {
           @action="router.push('/post/edit')"
         />
 
-        <empty-state 
+        <empty-state
           v-else-if="filteredPosts.length === 0 && searchKeyword"
           description="没有找到相关文章，试试其他关键词吧"
           :show-action="false"
         />
 
-        <div 
-          v-else 
-          v-for="post in filteredPosts" 
-          :key="post.id" 
+        <div
+          v-else
+          v-for="post in filteredPosts"
+          :key="post.id"
           class="post-card"
           @click="goToPostDetail(post.id)"
           @mouseenter="preloadPost(post.id)"
@@ -395,19 +391,21 @@ onUnmounted(() => {
         >
           <div class="post-header">
             <div class="post-author">
-              <n-avatar 
-                :src="post.author?.avatar" 
+              <n-avatar
+                :src="post.author?.avatar"
                 :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
-                round 
+                round
                 size="small"
               />
-              <span class="author-name">{{ post.author?.nickname || post.author?.username || '匿名' }}</span>
+              <span class="author-name">{{
+                post.author?.nickname || post.author?.username || "匿名"
+              }}</span>
               <span class="post-date">{{ formatDate(post.createTime) }}</span>
             </div>
-            <n-tag 
-              v-if="post.category" 
-              size="small" 
-              :bordered="false" 
+            <n-tag
+              v-if="post.category"
+              size="small"
+              :bordered="false"
               round
               class="category-badge-new"
             >
@@ -416,8 +414,8 @@ onUnmounted(() => {
           </div>
 
           <h2 class="post-title">{{ post.title }}</h2>
-          <p class="post-summary">{{ post.summary || post.content.substring(0, 150) + '...' }}</p>
-          
+          <p class="post-summary">{{ post.summary || post.content.substring(0, 150) + "..." }}</p>
+
           <div class="post-footer">
             <div class="post-stats">
               <span class="stat-item">
@@ -438,8 +436,8 @@ onUnmounted(() => {
               </span>
             </div>
             <div class="post-tags">
-              <n-tag 
-                v-for="tag in post.tags?.slice(0, 3)" 
+              <n-tag
+                v-for="tag in post.tags?.slice(0, 3)"
                 :key="tag.id"
                 size="small"
                 :bordered="false"
@@ -461,15 +459,20 @@ onUnmounted(() => {
         @update:page="handlePageChange"
         show-size-picker
         :page-sizes="[10, 20, 30, 50]"
-        @update:page-size="(size) => { pageSize = size; fetchPosts(1) }"
+        @update:page-size="
+          (size) => {
+            pageSize = size;
+            fetchPosts(1);
+          }
+        "
       />
     </div>
 
     <!-- Quick Actions -->
     <div class="quick-actions" v-if="isLoggedIn">
-      <n-button 
-        type="primary" 
-        circle 
+      <n-button
+        type="primary"
+        circle
         size="large"
         @click="router.push('/post/edit')"
         class="fab-button"
@@ -505,7 +508,7 @@ onUnmounted(() => {
 }
 
 .hero-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -739,7 +742,7 @@ kbd {
 }
 
 .post-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -798,7 +801,7 @@ kbd {
 }
 
 .post-date::before {
-  content: '·';
+  content: "·";
   margin: 0 6px;
 }
 
@@ -867,8 +870,6 @@ kbd {
   gap: 8px;
   flex-wrap: wrap;
 }
-
-
 
 /* Pagination */
 .pagination-container {
@@ -1022,7 +1023,8 @@ kbd {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -1034,27 +1036,49 @@ kbd {
   animation: fadeInUp 0.5s ease-out;
 }
 
-.post-card:nth-child(1) { animation-delay: 0.05s; }
-.post-card:nth-child(2) { animation-delay: 0.1s; }
-.post-card:nth-child(3) { animation-delay: 0.15s; }
-.post-card:nth-child(4) { animation-delay: 0.2s; }
-.post-card:nth-child(5) { animation-delay: 0.25s; }
+.post-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.post-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.post-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.post-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.post-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
 
 .stat-card {
   animation: slideInLeft 0.6s ease-out;
 }
 
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.stat-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.stat-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 .hot-post-card {
   animation: fadeInUp 0.5s ease-out;
 }
 
-.hot-post-card:nth-child(1) { animation-delay: 0.1s; }
-.hot-post-card:nth-child(2) { animation-delay: 0.2s; }
-.hot-post-card:nth-child(3) { animation-delay: 0.3s; }
+.hot-post-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.hot-post-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.hot-post-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 .fab-button:active {
   animation: pulse 0.3s ease;

@@ -1,0 +1,259 @@
+# ====================
+# 开发环境配置
+# ====================
+
+spring:
+  application:
+    # 应用名称
+    name: blog
+
+  # ====================
+  # 数据源配置
+  # ====================
+  datasource:
+    # MySQL数据库连接URL
+    # useUnicode=true: 使用Unicode编码
+    # characterEncoding=utf8: 字符编码为UTF-8
+    # useSSL=false: 不使用SSL连接
+    # serverTimezone=Asia/Shanghai: 设置服务器时区为上海
+    # allowPublicKeyRetrieval=true: 允许获取公钥（MySQL 8.0+需要）
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    
+    # 数据库用户名
+    username: root
+    
+    # 数据库密码
+    password: 2168884970
+    
+    # JDBC驱动类名
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # ====================
+    # HikariCP 连接池配置
+    # ====================
+    hikari:
+      # 连接超时时间（毫秒），20秒
+      connection-timeout: 20000
+      
+      # 连接池最大连接数
+      maximum-pool-size: 10
+      
+      # 连接池最小空闲连接数
+      minimum-idle: 5
+      
+      # 空闲连接超时时间（毫秒），5分钟
+      idle-timeout: 300000
+      
+      # 连接最大生命周期（毫秒），20分钟
+      max-lifetime: 1200000
+      
+      # 连接池名称
+      pool-name: BlogHikariCP
+
+  # ====================
+  # 数据库初始化
+  # ====================
+  sql:
+    init:
+      # 初始化模式：always(总是执行) / embedded(仅嵌入式数据库) / never(从不执行)
+      mode: never
+      
+      # 初始化出错时是否继续执行
+      continue-on-error: true
+      
+      # SQL脚本位置
+      schema-locations: classpath:db/init.sql
+
+  # ====================
+  # Jackson 序列化配置
+  # ====================
+  jackson:
+    # 日期格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    
+    # 时区设置
+    time-zone: Asia/Shanghai
+    
+    serialization:
+      # 序列化时不将日期写成时间戳格式
+      write-dates-as-timestamps: false
+      
+    # 默认属性包含策略：NON_NULL表示不序列化null值
+    default-property-inclusion: NON_NULL
+
+  # ====================
+  # 文件上传配置
+  # ====================
+  servlet:
+    multipart:
+      # 单个文件最大大小
+      max-file-size: 10MB
+      
+      # 整个请求最大大小
+      max-request-size: 10MB
+      
+      # 是否启用文件上传
+      enabled: true
+
+# ====================
+# 服务器配置
+# ====================
+server:
+  # 服务器端口，可通过环境变量SERVER_PORT设置，默认8080
+  port: ${SERVER_PORT:8080}
+  
+  servlet:
+    # Servlet上下文路径，所有API接口都会加上/api前缀
+    context-path: /api
+    
+    encoding:
+      # 字符编码
+      charset: UTF-8
+      
+      # 是否启用编码过滤器
+      enabled: true
+      
+      # 是否强制使用指定编码
+      force: true
+
+# ====================
+# MyBatis 配置
+# ====================
+mybatis:
+  # Mapper XML文件位置
+  mapper-locations: classpath:mapper/*.xml
+  
+  # 实体类别名包路径
+  type-aliases-package: com.example.blog.entity
+  
+  configuration:
+    # 是否开启驼峰命名规则映射（如将数据库下划线字段映射到Java驼峰属性）
+    map-underscore-to-camel-case: true
+    
+    # MyBatis日志实现类
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ====================
+# 日志配置
+# ====================
+logging:
+  level:
+    # 根日志级别
+    root: INFO
+    
+    # 项目包日志级别
+    com.example.blog: DEBUG
+    
+    # Spring框架日志级别
+    org.springframework: INFO
+    
+    # Spring Security日志级别
+    org.springframework.security: DEBUG
+    
+    # MyBatis日志级别
+    org.mybatis: DEBUG
+    
+  pattern:
+    # 控制台日志输出格式
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    
+    # 文件日志输出格式
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    
+  file:
+    # 日志文件名
+    name: logs/blog-dev.log
+    
+    # 单个日志文件最大大小
+    max-size: 10MB
+    
+    # 日志文件保留历史数量
+    max-history: 30
+
+# ====================
+# JWT 配置
+# ====================
+jwt:
+  # JWT密钥，可通过环境变量JWT_SECRET设置
+  secret: ${JWT_SECRET:mySecretKeyForJWT2024BlogApplicationThatIsMuchLongerAndMoreSecure}
+  
+  # JWT过期时间（毫秒），默认24小时
+  expiration: ${JWT_EXPIRATION:86400000}
+  
+  refresh:
+    # 刷新令牌过期时间（毫秒），默认7天
+    expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# ====================
+# 文件存储配置
+# ====================
+file:
+  # 文件上传目录，可通过环境变量FILE_UPLOAD_DIR设置
+  upload-dir: ${FILE_UPLOAD_DIR:uploads}
+  
+  # 单个文件最大大小（字节），10MB
+  max-size: 10485760
+  
+  # 允许上传的文件扩展名
+  allowed-extensions: jpg,jpeg,png,gif,bmp,webp
+
+# ====================
+# Spring Boot Actuator 配置
+# ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露的端点
+        include: health,info,metrics
+      
+      # Actuator基础路径
+      base-path: /actuator
+      
+  endpoint:
+    health:
+      # 健康检查详情显示策略
+      show-details: when_authorized
+      
+  info:
+    env:
+      # 是否启用环境信息
+      enabled: true
+
+# ====================
+# SpringDoc OpenAPI 配置
+# ====================
+springdoc:
+  api-docs:
+    # API文档路径
+    path: /v3/api-docs
+    
+    # 是否启用API文档
+    enabled: true
+    
+  swagger-ui:
+    # Swagger UI路径
+    path: /swagger-ui.html
+    
+    # 是否启用Swagger UI
+    enabled: true
+    
+    # 标签排序方式：alpha(字母顺序)
+    tags-sorter: alpha
+    
+    # 操作排序方式：alpha(字母顺序)
+    operations-sorter: alpha
+
+# ====================
+# 应用信息（用于 Actuator /info 端点）
+# ====================
+info:
+  app:
+    # 应用名称
+    name: 博客系统 API
+    
+    # 应用描述
+    description: 个人博客系统后端服务
+    
+    # 应用版本
+    version: 1.1.0

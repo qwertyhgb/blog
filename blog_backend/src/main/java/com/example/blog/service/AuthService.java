@@ -15,61 +15,63 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class AuthService {
-    
+public class AuthService implements IAuthService {
+
     @Autowired
     private AuthenticationManager authenticationManager;
-    
+
     @Autowired
-    private UserService userService;
-    
+    private IUserService userService;
+
     @Autowired
     private JwtUtil jwtUtil;
-    
+
+    @Override
     public Map<String, String> login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
-        
+                        loginRequest.getPassword()));
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        
+
         User user = userService.findByUsername(loginRequest.getUsername());
-        
+
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
-        
+
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
         tokenMap.put("refreshToken", refreshToken);
         tokenMap.put("type", "Bearer");
-        
+
         return tokenMap;
     }
-    
+
+    @Override
     public User register(RegisterRequest registerRequest) {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(registerRequest.getPassword());
         user.setNickname(registerRequest.getNickname());
         user.setEmail(registerRequest.getEmail());
-        
+
         return userService.register(user);
     }
-    
+
+    @Override
     public String refreshToken(String refreshToken) {
         String username = jwtUtil.getUsernameFromToken(refreshToken);
         User user = userService.findByUsername(username);
-        
+
         if (user != null && jwtUtil.validateToken(refreshToken, username)) {
             return jwtUtil.generateToken(user.getUsername(), user.getRole());
         }
-        
+
         throw new RuntimeException("无效的刷新令牌");
     }
-    
+
+    @Override
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {

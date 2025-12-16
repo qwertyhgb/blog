@@ -1,54 +1,45 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useCategoryStore } from '@/stores/category'
-import { 
-  NCard, 
-  NGrid, 
-  NGridItem, 
-  NIcon, 
-  NSkeleton, 
-  NEmpty,
-  NBadge,
-  NTag
-} from 'naive-ui'
-import { 
-  FolderOutline, 
+import { onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useCategoryStore } from "@/stores/category";
+import { NCard, NGrid, NGridItem, NIcon, NSkeleton, NEmpty, NBadge, NTag } from "naive-ui";
+import {
+  FolderOutline,
   ChevronForwardOutline,
   GridOutline,
   ListOutline,
-  DocumentTextOutline
-} from '@vicons/ionicons5'
+  DocumentTextOutline,
+} from "@vicons/ionicons5";
 
-const router = useRouter()
-const categoryStore = useCategoryStore()
+const router = useRouter();
+const categoryStore = useCategoryStore();
 
-const loading = computed(() => categoryStore.loading)
-const categories = computed(() => categoryStore.categories)
+const loading = computed(() => categoryStore.loading);
+const categories = computed(() => categoryStore.categories);
 
 // 为每个分类分配颜色
 const categoryColors = [
-  { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: '#667eea' },
-  { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: '#f093fb' },
-  { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: '#4facfe' },
-  { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: '#43e97b' },
-  { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: '#fa709a' },
-  { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: '#30cfd0' },
-  { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', icon: '#a8edea' },
-  { bg: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', icon: '#ff9a9e' },
-]
+  { bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", icon: "#667eea" },
+  { bg: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", icon: "#f093fb" },
+  { bg: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", icon: "#4facfe" },
+  { bg: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)", icon: "#43e97b" },
+  { bg: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)", icon: "#fa709a" },
+  { bg: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)", icon: "#30cfd0" },
+  { bg: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)", icon: "#a8edea" },
+  { bg: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", icon: "#ff9a9e" },
+];
 
 const getCategoryColor = (index: number) => {
-  return categoryColors[index % categoryColors.length]
-}
+  return categoryColors[index % categoryColors.length];
+};
 
 const goToCategory = (id: number) => {
-  router.push(`/category/${id}`)
-}
+  router.push(`/category/${id}`);
+};
 
 onMounted(() => {
-  categoryStore.fetchCategories()
-})
+  categoryStore.fetchCategories();
+});
 </script>
 
 <template>
@@ -93,12 +84,9 @@ onMounted(() => {
     <template v-else>
       <n-grid :cols="3" :x-gap="20" :y-gap="20" responsive="screen">
         <n-grid-item v-for="(category, index) in categories" :key="category.id">
-          <div 
-            class="category-card"
-            @click="goToCategory(category.id)"
-          >
+          <div class="category-card" @click="goToCategory(category.id)">
             <div class="category-card-bg" :style="{ background: getCategoryColor(index).bg }"></div>
-            
+
             <div class="category-icon-wrapper">
               <div class="category-icon" :style="{ background: getCategoryColor(index).bg }">
                 <n-icon :component="FolderOutline" :size="32" />
@@ -106,7 +94,7 @@ onMounted(() => {
             </div>
 
             <h3 class="category-name">{{ category.name }}</h3>
-            <p class="category-desc">{{ category.description || '暂无描述' }}</p>
+            <p class="category-desc">{{ category.description || "暂无描述" }}</p>
 
             <div class="category-footer">
               <n-tag size="small" :bordered="false" round>
@@ -162,8 +150,13 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .hero-title {
@@ -319,12 +312,24 @@ onMounted(() => {
   animation: fadeInUp 0.5s ease-out;
 }
 
-.category-card:nth-child(1) { animation-delay: 0.05s; }
-.category-card:nth-child(2) { animation-delay: 0.1s; }
-.category-card:nth-child(3) { animation-delay: 0.15s; }
-.category-card:nth-child(4) { animation-delay: 0.2s; }
-.category-card:nth-child(5) { animation-delay: 0.25s; }
-.category-card:nth-child(6) { animation-delay: 0.3s; }
+.category-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.category-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.category-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.category-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.category-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.category-card:nth-child(6) {
+  animation-delay: 0.3s;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {

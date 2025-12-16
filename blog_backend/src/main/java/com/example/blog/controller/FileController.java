@@ -1,6 +1,8 @@
 package com.example.blog.controller;
 
 import com.example.blog.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,13 +14,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * 文件上传控制器
+ *
+ * <p>
+ * 负责处理富文本编辑器或后台管理中的图片、附件上传请求，将文件保存到本地目录并返回可访问的 URL。
+ * </p>
+ */
 @RestController
 @RequestMapping("/upload")
+@Tag(name = "文件上传", description = "文件上传接口")
 public class FileController {
 
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    @Operation(summary = "上传文件", description = "上传图片文件并返回访问URL")
     @PostMapping
     public ApiResponse<String> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

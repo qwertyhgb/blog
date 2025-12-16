@@ -1,73 +1,64 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/post'
-import { useTagStore } from '@/stores/category'
-import { 
-  NCard, 
-  NIcon, 
-  NEmpty, 
-  NTag, 
-  NSkeleton 
-} from 'naive-ui'
-import { 
-  PricetagOutline, 
-  CalendarOutline, 
-  PersonOutline, 
-  EyeOutline, 
-  FolderOutline 
-} from '@vicons/ionicons5'
+import { ref, onMounted, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { usePostStore } from "@/stores/post";
+import { useTagStore } from "@/stores/category";
+import { NCard, NIcon, NEmpty, NTag, NSkeleton } from "naive-ui";
+import {
+  PricetagOutline,
+  CalendarOutline,
+  PersonOutline,
+  EyeOutline,
+  FolderOutline,
+} from "@vicons/ionicons5";
 
-const route = useRoute()
-const router = useRouter()
-const postStore = usePostStore()
-const tagStore = useTagStore()
+const route = useRoute();
+const router = useRouter();
+const postStore = usePostStore();
+const tagStore = useTagStore();
 
-const tagId = computed(() => Number(route.params.id))
-const loading = ref(false)
+const tagId = computed(() => Number(route.params.id));
+const loading = ref(false);
 
-const posts = computed(() => postStore.posts)
-const tag = computed(() => tagStore.currentTag)
+const posts = computed(() => postStore.posts);
+const tag = computed(() => tagStore.currentTag);
 
 const fetchData = async () => {
   try {
-    loading.value = true
-    await Promise.all([
-      tagStore.fetchTagById(tagId.value),
-      postStore.fetchPostsByTag(tagId.value)
-    ])
+    loading.value = true;
+    await Promise.all([tagStore.fetchTagById(tagId.value), postStore.fetchPostsByTag(tagId.value)]);
   } catch (error) {
-    console.error('获取数据失败:', error)
+    console.error("获取数据失败:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const goToPostDetail = (id: number) => {
-  router.push(`/post/${id}`)
-}
+  router.push(`/post/${id}`);
+};
 
 const goToCategory = (id: number) => {
-  router.push(`/category/${id}`)
-}
+  router.push(`/category/${id}`);
+};
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
+  const date = new Date(dateString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 const truncateContent = (content: string, length: number = 150) => {
-  if (content.length <= length) return content
-  return content.substring(0, length) + '...'
-}
+  if (content.length <= length) return content;
+  return content.substring(0, length) + "...";
+};
 
 watch(tagId, () => {
-  fetchData()
-})
+  fetchData();
+});
 
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 </script>
 
 <template>
@@ -77,10 +68,10 @@ onMounted(() => {
         <n-icon :component="PricetagOutline" :size="32" />
       </div>
       <div class="header-content">
-        <h1 class="page-title">{{ tag?.name || '加载中...' }}</h1>
+        <h1 class="page-title">{{ tag?.name || "加载中..." }}</h1>
       </div>
     </div>
-    
+
     <div class="posts-container">
       <template v-if="loading">
         <div v-for="i in 3" :key="i" class="post-card skeleton">
@@ -94,23 +85,23 @@ onMounted(() => {
         <div v-if="posts.length === 0" class="empty-state">
           <n-empty description="该标签下暂无文章" size="large" />
         </div>
-        
-        <div 
-          v-else 
-          v-for="post in posts" 
-          :key="post.id" 
+
+        <div
+          v-else
+          v-for="post in posts"
+          :key="post.id"
           class="post-card"
           @click="goToPostDetail(post.id)"
         >
           <h2 class="post-title">{{ post.title }}</h2>
           <p class="post-summary">{{ truncateContent(post.summary || post.content) }}</p>
-          
+
           <div class="post-footer">
             <div class="post-meta">
               <n-icon :component="CalendarOutline" :size="14" />
               <span>{{ formatDate(post.createTime) }}</span>
               <span class="dot">·</span>
-              <span>{{ post.author?.nickname || post.author?.username || '匿名' }}</span>
+              <span>{{ post.author?.nickname || post.author?.username || "匿名" }}</span>
               <span v-if="post.category" class="category-badge">{{ post.category.name }}</span>
             </div>
           </div>

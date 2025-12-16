@@ -1,72 +1,62 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useTagStore } from '@/stores/category'
-import { 
-  NCard, 
-  NSpace, 
-  NTag, 
-  NIcon, 
-  NSkeleton, 
-  NEmpty,
-  NInput,
-  NGrid,
-  NGridItem
-} from 'naive-ui'
-import { 
-  PricetagOutline, 
+import { onMounted, computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useTagStore } from "@/stores/category";
+import { NCard, NSpace, NTag, NIcon, NSkeleton, NEmpty, NInput, NGrid, NGridItem } from "naive-ui";
+import {
+  PricetagOutline,
   PricetagsOutline,
   SearchOutline,
-  DocumentTextOutline
-} from '@vicons/ionicons5'
+  DocumentTextOutline,
+} from "@vicons/ionicons5";
 
-const router = useRouter()
-const tagStore = useTagStore()
+const router = useRouter();
+const tagStore = useTagStore();
 
-const loading = computed(() => tagStore.loading)
-const tags = computed(() => tagStore.tags)
-const searchKeyword = ref('')
+const loading = computed(() => tagStore.loading);
+const tags = computed(() => tagStore.tags);
+const searchKeyword = ref("");
 
 // 标签颜色方案
 const tagColors = [
-  { bg: 'rgba(102, 126, 234, 0.15)', border: 'rgba(102, 126, 234, 0.3)', text: '#667eea' },
-  { bg: 'rgba(240, 147, 251, 0.15)', border: 'rgba(240, 147, 251, 0.3)', text: '#f093fb' },
-  { bg: 'rgba(79, 172, 254, 0.15)', border: 'rgba(79, 172, 254, 0.3)', text: '#4facfe' },
-  { bg: 'rgba(67, 233, 123, 0.15)', border: 'rgba(67, 233, 123, 0.3)', text: '#43e97b' },
-  { bg: 'rgba(250, 112, 154, 0.15)', border: 'rgba(250, 112, 154, 0.3)', text: '#fa709a' },
-  { bg: 'rgba(48, 207, 208, 0.15)', border: 'rgba(48, 207, 208, 0.3)', text: '#30cfd0' },
-  { bg: 'rgba(168, 237, 234, 0.15)', border: 'rgba(168, 237, 234, 0.3)', text: '#a8edea' },
-  { bg: 'rgba(255, 154, 158, 0.15)', border: 'rgba(255, 154, 158, 0.3)', text: '#ff9a9e' },
-]
+  { bg: "rgba(102, 126, 234, 0.15)", border: "rgba(102, 126, 234, 0.3)", text: "#667eea" },
+  { bg: "rgba(240, 147, 251, 0.15)", border: "rgba(240, 147, 251, 0.3)", text: "#f093fb" },
+  { bg: "rgba(79, 172, 254, 0.15)", border: "rgba(79, 172, 254, 0.3)", text: "#4facfe" },
+  { bg: "rgba(67, 233, 123, 0.15)", border: "rgba(67, 233, 123, 0.3)", text: "#43e97b" },
+  { bg: "rgba(250, 112, 154, 0.15)", border: "rgba(250, 112, 154, 0.3)", text: "#fa709a" },
+  { bg: "rgba(48, 207, 208, 0.15)", border: "rgba(48, 207, 208, 0.3)", text: "#30cfd0" },
+  { bg: "rgba(168, 237, 234, 0.15)", border: "rgba(168, 237, 234, 0.3)", text: "#a8edea" },
+  { bg: "rgba(255, 154, 158, 0.15)", border: "rgba(255, 154, 158, 0.3)", text: "#ff9a9e" },
+];
 
 const getTagColor = (index: number) => {
-  return tagColors[index % tagColors.length]
-}
+  return tagColors[index % tagColors.length];
+};
 
 // 根据标签名称生成一致的颜色索引
 const getTagColorIndex = (tagName: string) => {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < tagName.length; i++) {
-    hash = tagName.charCodeAt(i) + ((hash << 5) - hash)
+    hash = tagName.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return Math.abs(hash) % tagColors.length
-}
+  return Math.abs(hash) % tagColors.length;
+};
 
 // 筛选标签
 const filteredTags = computed(() => {
-  if (!searchKeyword.value) return tags.value
-  return tags.value.filter(tag => 
+  if (!searchKeyword.value) return tags.value;
+  return tags.value.filter((tag) =>
     tag.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  )
-})
+  );
+});
 
 const goToTag = (id: number) => {
-  router.push(`/tag/${id}`)
-}
+  router.push(`/tag/${id}`);
+};
 
 onMounted(() => {
-  tagStore.fetchTags()
-})
+  tagStore.fetchTags();
+});
 </script>
 
 <template>
@@ -84,13 +74,7 @@ onMounted(() => {
 
     <!-- Search Bar -->
     <div class="search-section">
-      <n-input
-        v-model:value="searchKeyword"
-        size="large"
-        placeholder="搜索标签..."
-        clearable
-        round
-      >
+      <n-input v-model:value="searchKeyword" size="large" placeholder="搜索标签..." clearable round>
         <template #prefix>
           <n-icon :component="SearchOutline" :size="18" />
         </template>
@@ -122,15 +106,15 @@ onMounted(() => {
     <!-- Tags Grid -->
     <template v-else>
       <div class="tags-grid">
-        <div 
-          v-for="(tag, index) in filteredTags" 
+        <div
+          v-for="(tag, index) in filteredTags"
           :key="tag.id"
           class="tag-card"
           @click="goToTag(tag.id)"
           :style="{
             '--tag-bg': getTagColor(getTagColorIndex(tag.name)).bg,
             '--tag-border': getTagColor(getTagColorIndex(tag.name)).border,
-            '--tag-text': getTagColor(getTagColorIndex(tag.name)).text
+            '--tag-text': getTagColor(getTagColorIndex(tag.name)).text,
           }"
         >
           <div class="tag-icon">
@@ -182,8 +166,13 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
 }
 
 .hero-title {
@@ -226,7 +215,7 @@ onMounted(() => {
 }
 
 .tag-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -339,18 +328,42 @@ onMounted(() => {
   animation: fadeInScale 0.4s ease-out;
 }
 
-.tag-card:nth-child(1) { animation-delay: 0.03s; }
-.tag-card:nth-child(2) { animation-delay: 0.06s; }
-.tag-card:nth-child(3) { animation-delay: 0.09s; }
-.tag-card:nth-child(4) { animation-delay: 0.12s; }
-.tag-card:nth-child(5) { animation-delay: 0.15s; }
-.tag-card:nth-child(6) { animation-delay: 0.18s; }
-.tag-card:nth-child(7) { animation-delay: 0.21s; }
-.tag-card:nth-child(8) { animation-delay: 0.24s; }
-.tag-card:nth-child(9) { animation-delay: 0.27s; }
-.tag-card:nth-child(10) { animation-delay: 0.3s; }
-.tag-card:nth-child(11) { animation-delay: 0.33s; }
-.tag-card:nth-child(12) { animation-delay: 0.36s; }
+.tag-card:nth-child(1) {
+  animation-delay: 0.03s;
+}
+.tag-card:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.tag-card:nth-child(3) {
+  animation-delay: 0.09s;
+}
+.tag-card:nth-child(4) {
+  animation-delay: 0.12s;
+}
+.tag-card:nth-child(5) {
+  animation-delay: 0.15s;
+}
+.tag-card:nth-child(6) {
+  animation-delay: 0.18s;
+}
+.tag-card:nth-child(7) {
+  animation-delay: 0.21s;
+}
+.tag-card:nth-child(8) {
+  animation-delay: 0.24s;
+}
+.tag-card:nth-child(9) {
+  animation-delay: 0.27s;
+}
+.tag-card:nth-child(10) {
+  animation-delay: 0.3s;
+}
+.tag-card:nth-child(11) {
+  animation-delay: 0.33s;
+}
+.tag-card:nth-child(12) {
+  animation-delay: 0.36s;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, h, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { 
-  NButton, 
-  NInput, 
-  NIcon, 
-  NDataTable, 
-  NTag, 
-  NEmpty, 
-  NPagination, 
+import { ref, onMounted, h, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
+import {
+  NButton,
+  NInput,
+  NIcon,
+  NDataTable,
+  NTag,
+  NEmpty,
+  NPagination,
   NCard,
   NGrid,
   NGridItem,
@@ -18,257 +18,253 @@ import {
   NAvatar,
   NSkeleton,
   useMessage,
-  useDialog
-} from 'naive-ui'
-import { 
-  SearchOutline, 
-  AddOutline, 
-  CreateOutline, 
-  TrashOutline, 
+  useDialog,
+} from "naive-ui";
+import {
+  SearchOutline,
+  AddOutline,
+  CreateOutline,
+  TrashOutline,
   EyeOutline,
   HeartOutline,
   ChatbubbleOutline,
   DocumentTextOutline,
   TrendingUpOutline,
-  TimeOutline
-} from '@vicons/ionicons5'
+  TimeOutline,
+} from "@vicons/ionicons5";
 
-const router = useRouter()
-const userStore = useUserStore()
-const message = useMessage()
-const dialog = useDialog()
+const router = useRouter();
+const userStore = useUserStore();
+const message = useMessage();
+const dialog = useDialog();
 
-const loading = ref(false)
-const searchKeyword = ref('')
-const currentPage = ref(1)
-const pageSize = ref(10)
-const viewMode = ref<'table' | 'card'>('card')
+const loading = ref(false);
+const searchKeyword = ref("");
+const currentPage = ref(1);
+const pageSize = ref(10);
+const viewMode = ref<"table" | "card">("card");
 
-const posts = ref<any[]>([])
-const total = ref(0)
+const posts = ref<any[]>([]);
+const total = ref(0);
 
 // 统计数据
 const stats = computed(() => {
-  const totalViews = posts.value.reduce((sum, post) => sum + (post.viewCount || 0), 0)
-  const totalLikes = posts.value.reduce((sum, post) => sum + (post.likeCount || 0), 0)
-  const totalComments = posts.value.reduce((sum, post) => sum + (post.commentCount || 0), 0)
-  const publishedCount = posts.value.filter(post => post.status === 1).length
-  
+  const totalViews = posts.value.reduce((sum, post) => sum + (post.viewCount || 0), 0);
+  const totalLikes = posts.value.reduce((sum, post) => sum + (post.likeCount || 0), 0);
+  const totalComments = posts.value.reduce((sum, post) => sum + (post.commentCount || 0), 0);
+  const publishedCount = posts.value.filter((post) => post.status === 1).length;
+
   return {
     total: posts.value.length,
     published: publishedCount,
     draft: posts.value.length - publishedCount,
     totalViews,
     totalLikes,
-    totalComments
-  }
-})
+    totalComments,
+  };
+});
 
 // 方法
 const fetchMyPosts = async () => {
   try {
-    loading.value = true
-    const { postApi } = await import('@/api')
+    loading.value = true;
+    const { postApi } = await import("@/api");
     const res = await postApi.getPosts({
       page: currentPage.value,
       size: pageSize.value,
-      keyword: searchKeyword.value || undefined
-    })
-    
+      keyword: searchKeyword.value || undefined,
+    });
+
     if (res.data) {
       // 过滤出当前用户的文章
-      const allPosts = res.data.records || []
-      posts.value = allPosts.filter((post: any) => 
-        post.author?.id === userStore.userInfo?.id
-      )
-      total.value = posts.value.length
+      const allPosts = res.data.records || [];
+      posts.value = allPosts.filter((post: any) => post.author?.id === userStore.userInfo?.id);
+      total.value = posts.value.length;
     }
   } catch (error) {
-    console.error('获取文章列表失败:', error)
+    console.error("获取文章列表失败:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const handleSearch = () => {
-  currentPage.value = 1
-  fetchMyPosts()
-}
+  currentPage.value = 1;
+  fetchMyPosts();
+};
 
 const handlePageChange = (page: number) => {
-  currentPage.value = page
-  fetchMyPosts()
-}
+  currentPage.value = page;
+  fetchMyPosts();
+};
 
 const viewPost = (id: number) => {
-  router.push(`/post/${id}`)
-}
+  router.push(`/post/${id}`);
+};
 
 const editPost = (id: number) => {
-  router.push(`/post/edit/${id}`)
-}
+  router.push(`/post/edit/${id}`);
+};
 
 const deletePost = async (id: number) => {
   dialog.warning({
-    title: '提示',
-    content: '确定要删除这篇文章吗？',
-    positiveText: '确定',
-    negativeText: '取消',
+    title: "提示",
+    content: "确定要删除这篇文章吗？",
+    positiveText: "确定",
+    negativeText: "取消",
     onPositiveClick: async () => {
       try {
-        const { postApi } = await import('@/api')
-        await postApi.deletePost(id)
-        message.success('删除成功')
-        fetchMyPosts()
+        const { postApi } = await import("@/api");
+        await postApi.deletePost(id);
+        message.success("删除成功");
+        fetchMyPosts();
       } catch (error: any) {
-        message.error(error.message || '删除失败')
+        message.error(error.message || "删除失败");
       }
-    }
-  })
-}
+    },
+  });
+};
 
 const createPost = () => {
-  router.push('/post/edit')
-}
+  router.push("/post/edit");
+};
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
+  const date = new Date(dateString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 const formatRelativeTime = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (days === 0) return '今天'
-  if (days === 1) return '昨天'
-  if (days < 7) return `${days}天前`
-  if (days < 30) return `${Math.floor(days / 7)}周前`
-  return formatDate(dateString)
-}
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days === 0) return "今天";
+  if (days === 1) return "昨天";
+  if (days < 7) return `${days}天前`;
+  if (days < 30) return `${Math.floor(days / 7)}周前`;
+  return formatDate(dateString);
+};
 
 const formatNumber = (num: number) => {
-  if (num >= 10000) return (num / 10000).toFixed(1) + 'w'
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'k'
-  return num.toString()
-}
+  if (num >= 10000) return (num / 10000).toFixed(1) + "w";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "k";
+  return num.toString();
+};
 
 const getStatusText = (status: number) => {
-  return status === 0 ? '草稿' : status === 1 ? '已发布' : '已下架'
-}
+  return status === 0 ? "草稿" : status === 1 ? "已发布" : "已下架";
+};
 
 const getStatusType = (status: number) => {
-  return status === 0 ? 'info' : status === 1 ? 'success' : 'warning'
-}
+  return status === 0 ? "info" : status === 1 ? "success" : "warning";
+};
 
 // 表格列配置
 const columns = [
   {
-    title: 'ID',
-    key: 'id',
-    width: 80
+    title: "ID",
+    key: "id",
+    width: 80,
   },
   {
-    title: '标题',
-    key: 'title',
+    title: "标题",
+    key: "title",
     minWidth: 200,
     ellipsis: {
-      tooltip: true
-    }
+      tooltip: true,
+    },
   },
   {
-    title: '分类',
-    key: 'category.name',
+    title: "分类",
+    key: "category.name",
     width: 120,
     render(row: any) {
-      return row.category?.name || '-'
-    }
+      return row.category?.name || "-";
+    },
   },
   {
-    title: '状态',
-    key: 'status',
+    title: "状态",
+    key: "status",
     width: 100,
     render(row: any) {
       return h(
         NTag,
         {
           type: getStatusType(row.status) as any,
-          size: 'small'
+          size: "small",
         },
         { default: () => getStatusText(row.status) }
-      )
-    }
+      );
+    },
   },
   {
-    title: '浏览量',
-    key: 'viewCount',
-    width: 100
+    title: "浏览量",
+    key: "viewCount",
+    width: 100,
   },
   {
-    title: '创建时间',
-    key: 'createTime',
+    title: "创建时间",
+    key: "createTime",
     width: 120,
     render(row: any) {
-      return formatDate(row.createTime)
-    }
+      return formatDate(row.createTime);
+    },
   },
   {
-    title: '操作',
-    key: 'actions',
+    title: "操作",
+    key: "actions",
     width: 250,
     render(row: any) {
       return [
         h(
           NButton,
           {
-            type: 'primary',
-            size: 'small',
+            type: "primary",
+            size: "small",
             onClick: () => viewPost(row.id),
-            style: 'margin-right: 6px'
+            style: "margin-right: 6px",
           },
-          { 
-            default: () => '查看',
-            icon: () => h(NIcon, null, { default: () => h(EyeOutline) })
+          {
+            default: () => "查看",
+            icon: () => h(NIcon, null, { default: () => h(EyeOutline) }),
           }
         ),
         h(
           NButton,
           {
-            type: 'success',
-            size: 'small',
+            type: "success",
+            size: "small",
             onClick: () => editPost(row.id),
-            style: 'margin-right: 6px'
+            style: "margin-right: 6px",
           },
-          { 
-            default: () => '编辑',
-            icon: () => h(NIcon, null, { default: () => h(CreateOutline) })
+          {
+            default: () => "编辑",
+            icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
           }
         ),
         h(
           NButton,
           {
-            type: 'error',
-            size: 'small',
-            onClick: () => deletePost(row.id)
+            type: "error",
+            size: "small",
+            onClick: () => deletePost(row.id),
           },
-          { 
-            default: () => '删除',
-            icon: () => h(NIcon, null, { default: () => h(TrashOutline) })
+          {
+            default: () => "删除",
+            icon: () => h(NIcon, null, { default: () => h(TrashOutline) }),
           }
-        )
-      ]
-    }
-  }
-]
-
-
+        ),
+      ];
+    },
+  },
+];
 
 // 初始化
 onMounted(() => {
-  fetchMyPosts()
-})
+  fetchMyPosts();
+});
 </script>
 
 <template>
@@ -277,15 +273,17 @@ onMounted(() => {
     <div class="hero-section">
       <div class="hero-content">
         <div class="hero-left">
-          <n-avatar 
-            :src="userStore.userInfo?.avatar" 
+          <n-avatar
+            :src="userStore.userInfo?.avatar"
             :size="80"
             round
             :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
           />
           <div class="hero-info">
             <h1 class="hero-title">我的博客</h1>
-            <p class="hero-subtitle">{{ userStore.userInfo?.nickname || userStore.userInfo?.username }}</p>
+            <p class="hero-subtitle">
+              {{ userStore.userInfo?.nickname || userStore.userInfo?.username }}
+            </p>
           </div>
         </div>
         <n-button type="primary" size="large" @click="createPost" strong>
@@ -302,7 +300,10 @@ onMounted(() => {
       <n-grid :cols="6" :x-gap="16" :y-gap="16" responsive="screen">
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            >
               <n-icon :component="DocumentTextOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -313,7 +314,10 @@ onMounted(() => {
         </n-grid-item>
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            >
               <n-icon :component="CreateOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -324,7 +328,10 @@ onMounted(() => {
         </n-grid-item>
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+            >
               <n-icon :component="EyeOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -335,7 +342,10 @@ onMounted(() => {
         </n-grid-item>
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            >
               <n-icon :component="HeartOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -346,7 +356,10 @@ onMounted(() => {
         </n-grid-item>
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)"
+            >
               <n-icon :component="ChatbubbleOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -357,7 +370,10 @@ onMounted(() => {
         </n-grid-item>
         <n-grid-item :span="6" :s-span="3" :m-span="2">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+            >
               <n-icon :component="TrendingUpOutline" :size="24" />
             </div>
             <div class="stat-content">
@@ -386,14 +402,14 @@ onMounted(() => {
       </div>
       <div class="view-toggle">
         <n-space>
-          <n-button 
+          <n-button
             :type="viewMode === 'card' ? 'primary' : 'default'"
             @click="viewMode = 'card'"
             ghost
           >
             卡片视图
           </n-button>
-          <n-button 
+          <n-button
             :type="viewMode === 'table' ? 'primary' : 'default'"
             @click="viewMode = 'table'"
             ghost
@@ -442,21 +458,16 @@ onMounted(() => {
         <n-grid-item v-for="post in posts" :key="post.id">
           <div class="post-card" @click="viewPost(post.id)">
             <div class="post-card-header">
-              <n-tag 
-                :type="getStatusType(post.status)" 
-                size="small" 
-                :bordered="false"
-                round
-              >
+              <n-tag :type="getStatusType(post.status)" size="small" :bordered="false" round>
                 {{ getStatusText(post.status) }}
               </n-tag>
               <span class="post-date">{{ formatRelativeTime(post.createTime) }}</span>
             </div>
 
             <h3 class="post-card-title">{{ post.title }}</h3>
-            
+
             <p class="post-card-summary">
-              {{ post.summary || post.content?.substring(0, 100) + '...' || '暂无内容' }}
+              {{ post.summary || post.content?.substring(0, 100) + "..." || "暂无内容" }}
             </p>
 
             <div class="post-card-meta">
@@ -464,8 +475,14 @@ onMounted(() => {
                 {{ post.category.name }}
               </n-tag>
               <div class="post-card-stats">
-                <span><n-icon :component="EyeOutline" :size="14" /> {{ formatNumber(post.viewCount || 0) }}</span>
-                <span><n-icon :component="HeartOutline" :size="14" /> {{ formatNumber(post.likeCount || 0) }}</span>
+                <span
+                  ><n-icon :component="EyeOutline" :size="14" />
+                  {{ formatNumber(post.viewCount || 0) }}</span
+                >
+                <span
+                  ><n-icon :component="HeartOutline" :size="14" />
+                  {{ formatNumber(post.likeCount || 0) }}</span
+                >
               </div>
             </div>
 
@@ -504,7 +521,7 @@ onMounted(() => {
         :bordered="false"
         :single-line="false"
       />
-      
+
       <div v-if="posts.length === 0 && !loading" class="empty-state">
         <n-empty description="还没有文章，快去创建一篇吧！" size="large">
           <template #extra>
@@ -528,7 +545,12 @@ onMounted(() => {
         show-size-picker
         :page-sizes="[10, 20, 30, 50]"
         @update:page="handlePageChange"
-        @update:page-size="(size) => { pageSize = size; fetchMyPosts() }"
+        @update:page-size="
+          (size) => {
+            pageSize = size;
+            fetchMyPosts();
+          }
+        "
       />
     </div>
   </div>
@@ -554,7 +576,7 @@ onMounted(() => {
 }
 
 .hero-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -698,7 +720,7 @@ onMounted(() => {
 }
 
 .post-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -839,12 +861,24 @@ onMounted(() => {
   animation: fadeInUp 0.5s ease-out;
 }
 
-.stat-card:nth-child(1) { animation-delay: 0.05s; }
-.stat-card:nth-child(2) { animation-delay: 0.1s; }
-.stat-card:nth-child(3) { animation-delay: 0.15s; }
-.stat-card:nth-child(4) { animation-delay: 0.2s; }
-.stat-card:nth-child(5) { animation-delay: 0.25s; }
-.stat-card:nth-child(6) { animation-delay: 0.3s; }
+.stat-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.stat-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.stat-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.stat-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.stat-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.stat-card:nth-child(6) {
+  animation-delay: 0.3s;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {

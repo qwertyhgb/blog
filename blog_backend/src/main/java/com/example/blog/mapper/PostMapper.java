@@ -42,7 +42,7 @@ public interface PostMapper {
     
     int deleteById(@Param("id") Long id);
     
-    int increaseViewCount(@Param("id") Long id);
+    void increaseViewCount(@Param("id") Long id);
     
-    int increaseLikeCount(@Param("id") Long id);
+    void increaseLikeCount(@Param("id") Long id);
 }

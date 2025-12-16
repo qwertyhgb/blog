@@ -3,30 +3,42 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "个人博客系统前端项目",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx,.vue --fix",
+    "lint:check": "eslint src --ext .ts,.tsx,.vue",
+    "format": "prettier --write \"src/**/*.{ts,tsx,vue,css,scss}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,vue,css,scss}\""
   },
   "dependencies": {
-    "@vicons/ionicons5": "^0.13.0",
-    "axios": "^1.7.9",
-    "dayjs": "^1.11.10",
-    "highlight.js": "^11.10.0",
-    "markdown-it": "^14.1.0",
-    "naive-ui": "^2.43.2",
-    "pinia": "^2.2.8",
-    "vfonts": "^0.0.3",
-    "vue": "^3.5.24",
-    "vue-router": "^4.4.5"
+    "@vicons/ionicons5": "^0.13.0",        // 图标库：Ionicons 5图标
+    "axios": "^1.7.9",                     // HTTP客户端：用于发送HTTP请求
+    "dayjs": "^1.11.10",                   // 日期处理库：轻量级日期处理
+    "highlight.js": "^11.10.0",             // 代码高亮库：语法高亮显示
+    "markdown-it": "^14.1.0",               // Markdown解析器：解析Markdown文本
+    "naive-ui": "^2.43.2",                 // UI组件库：Naive UI组件库
+    "pinia": "^2.2.8",                     // 状态管理：Vue状态管理库
+    "vfonts": "^0.0.3",                    // 字体库：提供常用字体
+    "vue": "^3.5.24",                      // 前端框架：Vue 3核心库
+    "vue-router": "^4.4.5"                 // 路由管理：Vue路由管理库
   },
   "devDependencies": {
-    "@types/markdown-it": "^14.1.2",
-    "@types/node": "^24.10.1",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "@vue/tsconfig": "^0.8.1",
-    "typescript": "~5.9.3",
-    "vite": "^7.2.4",
-    "vue-tsc": "^3.1.4"
+    "@types/markdown-it": "^14.1.2",        // Markdown类型定义
+    "@types/node": "^24.10.1",              // Node.js类型定义
+    "@typescript-eslint/eslint-plugin": "^8.49.0",  // ESLint TypeScript插件
+    "@typescript-eslint/parser": "^8.49.0",         // TypeScript解析器
+    "@vitejs/plugin-vue": "^6.0.1",         // Vite Vue插件
+    "@vue/tsconfig": "^0.8.1",              // Vue TypeScript配置
+    "eslint": "^9.39.1",                    // 代码检查工具
+    "eslint-config-prettier": "^10.1.8",    // ESLint Prettier配置
+    "eslint-plugin-prettier": "^5.5.4",     // ESLint Prettier插件
+    "eslint-plugin-vue": "^10.6.2",         // ESLint Vue插件
+    "prettier": "^3.7.4",                   // 代码格式化工具
+    "typescript": "~5.9.3",                 // TypeScript编译器
+    "vite": "^7.2.4",                       // 构建工具：前端构建工具
+    "vue-tsc": "^3.1.4"                     // Vue TypeScript编译器
   }
 }

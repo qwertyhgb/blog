@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+*.local
+
+# IDE
+.vscode
+.idea
+
+# Config files
+*.config.js
+*.config.ts
+vite.config.ts
+
+# Type declarations
+*.d.ts
+
+# Logs
+logs
+*.log
+
+# Test coverage
+coverage
+
+# Public assets
+public
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

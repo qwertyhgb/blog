@@ -1,77 +1,77 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/post'
-import { useCommentStore } from '@/stores/comment'
-import { useUserStore } from '@/stores/user'
-import { 
-  NTag, 
-  NIcon, 
-  NButton, 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NAvatar, 
-  NEmpty, 
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { usePostStore } from "@/stores/post";
+import { useCommentStore } from "@/stores/comment";
+import { useUserStore } from "@/stores/user";
+import {
+  NTag,
+  NIcon,
+  NButton,
+  NForm,
+  NFormItem,
+  NInput,
+  NAvatar,
+  NEmpty,
   NSkeleton,
   useMessage,
   useDialog,
   NDivider,
   NDropdown,
-  type FormInst
-} from 'naive-ui'
-import { 
-  CalendarOutline, 
-  PersonOutline, 
-  EyeOutline, 
-  FolderOutline, 
-  PricetagOutline, 
-  CreateOutline, 
+  type FormInst,
+} from "naive-ui";
+import {
+  CalendarOutline,
+  PersonOutline,
+  EyeOutline,
+  FolderOutline,
+  PricetagOutline,
+  CreateOutline,
   TrashOutline,
   HeartOutline,
   ChatbubbleOutline,
   ShareSocialOutline,
   BookmarkOutline,
-  EllipsisHorizontal
-} from '@vicons/ionicons5'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
-import ReadingProgress from '@/components/ReadingProgress.vue'
-import TableOfContents from '@/components/TableOfContents.vue'
-import BackTop from '@/components/BackTop.vue'
-import ShareButton from '@/components/ShareButton.vue'
+  EllipsisHorizontal,
+} from "@vicons/ionicons5";
+import MarkdownIt from "markdown-it";
+import hljs from "highlight.js";
+import "highlight.js/styles/github.css";
+import ReadingProgress from "@/components/ReadingProgress.vue";
+import TableOfContents from "@/components/TableOfContents.vue";
+import BackTop from "@/components/BackTop.vue";
+import ShareButton from "@/components/ShareButton.vue";
 
-const route = useRoute()
-const router = useRouter()
-const postStore = usePostStore()
-const commentStore = useCommentStore()
-const userStore = useUserStore()
-const message = useMessage()
-const dialog = useDialog()
+const route = useRoute();
+const router = useRouter();
+const postStore = usePostStore();
+const commentStore = useCommentStore();
+const userStore = useUserStore();
+const message = useMessage();
+const dialog = useDialog();
 
-const postId = computed(() => Number(route.params.id))
-const post = computed(() => postStore.currentPost)
-const comments = computed(() => commentStore.comments)
-const isLoggedIn = computed(() => userStore.isLoggedIn)
-const isAdmin = computed(() => userStore.isAdmin)
+const postId = computed(() => Number(route.params.id));
+const post = computed(() => postStore.currentPost);
+const comments = computed(() => commentStore.comments);
+const isLoggedIn = computed(() => userStore.isLoggedIn);
+const isAdmin = computed(() => userStore.isAdmin);
 
-const loading = ref(false)
+const loading = ref(false);
 
-const submittingComment = ref(false)
-const showCommentForm = ref(false)
-const commentFormRef = ref<FormInst | null>(null)
+const submittingComment = ref(false);
+const showCommentForm = ref(false);
+const commentFormRef = ref<FormInst | null>(null);
 
 const commentForm = ref({
-  content: ''
-})
+  content: "",
+});
 
 const commentRules = {
   content: [
-    { required: true, message: '请输入评论内容', trigger: 'blur' },
-    { min: 5, max: 500, message: '长度应在 5 到 500 个字符之间', trigger: 'blur' }
-  ]
-}
+    { required: true, message: "请输入评论内容", trigger: "blur" },
+    { min: 5, max: 500, message: "长度应在 5 到 500 个字符之间", trigger: "blur" },
+  ],
+};
 
 // Initialize Markdown renderer
 const md = new MarkdownIt({
@@ -81,139 +81,139 @@ const md = new MarkdownIt({
   highlight: function (str: string, lang: string) {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlight(str, { language: lang }).value
+        return hljs.highlight(str, { language: lang }).value;
       } catch (__) {}
     }
-    return ''
-  }
-})
+    return "";
+  },
+});
 
 // Compute rendered HTML content
 const renderedContent = computed(() => {
-  return post.value ? md.render(post.value.content) : ''
-})
+  return post.value ? md.render(post.value.content) : "";
+});
 
 // Methods
 const fetchPost = async () => {
   try {
-    loading.value = true
-    await postStore.fetchPostById(postId.value)
-    
+    loading.value = true;
+    await postStore.fetchPostById(postId.value);
+
     if (postStore.currentPost) {
-      await commentStore.fetchCommentsByPostId(postId.value)
+      await commentStore.fetchCommentsByPostId(postId.value);
     }
   } catch (error: any) {
-    console.error('获取文章失败:', error)
-    message.error(error.message || '获取文章失败')
+    console.error("获取文章失败:", error);
+    message.error(error.message || "获取文章失败");
     setTimeout(() => {
-      router.push('/')
-    }, 1500)
+      router.push("/");
+    }, 1500);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+  const date = new Date(dateString);
+  return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric", year: "numeric" });
+};
 
 const goToCategory = (id: number) => {
-  router.push(`/category/${id}`)
-}
+  router.push(`/category/${id}`);
+};
 
 const goToTag = (id: number) => {
-  router.push(`/tag/${id}`)
-}
+  router.push(`/tag/${id}`);
+};
 
 const editPost = () => {
-  router.push(`/post/edit/${postId.value}`)
-}
+  router.push(`/post/edit/${postId.value}`);
+};
 
 const deletePost = async () => {
   dialog.warning({
-    title: '删除文章',
-    content: '确定要删除这篇文章吗？',
-    positiveText: '删除',
-    negativeText: '取消',
+    title: "删除文章",
+    content: "确定要删除这篇文章吗？",
+    positiveText: "删除",
+    negativeText: "取消",
     onPositiveClick: async () => {
       try {
-        await postStore.deletePost(postId.value)
-        message.success('删除成功')
-        router.push('/')
+        await postStore.deletePost(postId.value);
+        message.success("删除成功");
+        router.push("/");
       } catch (error: any) {
-        message.error(error.message || '删除失败')
+        message.error(error.message || "删除失败");
       }
-    }
-  })
-}
+    },
+  });
+};
 
 const toggleCommentForm = () => {
-  showCommentForm.value = !showCommentForm.value
-}
+  showCommentForm.value = !showCommentForm.value;
+};
 
 const submitComment = (e: MouseEvent) => {
-  e.preventDefault()
+  e.preventDefault();
   commentFormRef.value?.validate(async (errors) => {
     if (!errors) {
       try {
-        submittingComment.value = true
+        submittingComment.value = true;
         await commentStore.createComment({
           postId: postId.value,
-          content: commentForm.value.content
-        })
-        message.success('评论已发布')
-        commentForm.value.content = ''
-        showCommentForm.value = false
-        await commentStore.fetchCommentsByPostId(postId.value)
+          content: commentForm.value.content,
+        });
+        message.success("评论已发布");
+        commentForm.value.content = "";
+        showCommentForm.value = false;
+        await commentStore.fetchCommentsByPostId(postId.value);
       } catch (error: any) {
-        message.error(error.message || '评论发布失败')
+        message.error(error.message || "评论发布失败");
       } finally {
-        submittingComment.value = false
+        submittingComment.value = false;
       }
     }
-  })
-}
+  });
+};
 
 const deleteComment = async (id: number) => {
   dialog.warning({
-    title: '删除评论',
-    content: '确定要删除这条评论吗？',
-    positiveText: '删除',
-    negativeText: '取消',
+    title: "删除评论",
+    content: "确定要删除这条评论吗？",
+    positiveText: "删除",
+    negativeText: "取消",
     onPositiveClick: async () => {
       try {
-        await commentStore.deleteComment(id)
-        message.success('删除成功')
-        await commentStore.fetchCommentsByPostId(postId.value)
+        await commentStore.deleteComment(id);
+        message.success("删除成功");
+        await commentStore.fetchCommentsByPostId(postId.value);
       } catch (error: any) {
-        message.error(error.message || '删除失败')
+        message.error(error.message || "删除失败");
       }
-    }
-  })
-}
+    },
+  });
+};
 
-const liking = ref(false)
+const liking = ref(false);
 const handleLike = async () => {
-  if (liking.value) return
-  
+  if (liking.value) return;
+
   try {
-    liking.value = true
-    await postStore.likePost(postId.value)
-    message.success('点赞成功')
+    liking.value = true;
+    await postStore.likePost(postId.value);
+    message.success("点赞成功");
     if (post.value) {
-      post.value.likeCount = (post.value.likeCount || 0) + 1
+      post.value.likeCount = (post.value.likeCount || 0) + 1;
     }
   } catch (error: any) {
-    message.error(error.message || '点赞失败')
+    message.error(error.message || "点赞失败");
   } finally {
-    liking.value = false
+    liking.value = false;
   }
-}
+};
 
 onMounted(() => {
-  fetchPost()
-})
+  fetchPost();
+});
 </script>
 
 <template>
@@ -230,123 +230,130 @@ onMounted(() => {
       </div>
       <n-skeleton text :repeat="10" style="margin-top: 40px" />
     </div>
-    
+
     <div v-else-if="post" class="article-layout">
       <article class="article-content">
-      <h1 class="article-title serif">{{ post.title }}</h1>
-      
-      <div class="article-meta">
-        <div class="author-info">
-          <n-avatar 
-            round 
-            size="medium" 
-            :src="post.author?.avatar"
-            :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
-          />
-          <div class="author-details">
-            <div class="author-name">{{ post.author?.nickname || post.author?.username || '匿名用户' }}</div>
-            <div class="publish-info">
-              <span>{{ formatDate(post.createTime) }}</span>
-              <span class="dot">·</span>
-              <span>{{ Math.ceil(post.content.length / 500) }} 分钟阅读</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="article-actions">
-          <share-button :title="post.title" />
-          
-          <n-button quaternary circle>
-            <template #icon>
-              <n-icon :component="BookmarkOutline" />
-            </template>
-          </n-button>
-          
-          <n-dropdown v-if="isAdmin" trigger="click" :options="[
-            { label: '编辑', key: 'edit' },
-            { label: '删除', key: 'delete' }
-          ]" @select="(key) => key === 'edit' ? editPost() : deletePost()">
-            <n-button quaternary circle>
-              <template #icon>
-                <n-icon :component="CreateOutline" />
-              </template>
-            </n-button>
-          </n-dropdown>
-        </div>
-      </div>
-      
-      <n-divider />
-      
-      <div class="markdown-body serif" v-html="renderedContent"></div>
-      
-      <div class="article-tags">
-        <n-tag 
-          v-if="post.category" 
-          round 
-          :bordered="false" 
-          class="tag-pill" 
-          @click="goToCategory(post.category.id)"
-        >
-          {{ post.category.name }}
-        </n-tag>
-        
-        <n-tag 
-          v-for="tag in post.tags" 
-          :key="tag.id"
-          round
-          :bordered="false"
-          class="tag-pill"
-          @click="goToTag(tag.id)"
-        >
-          {{ tag.name }}
-        </n-tag>
-      </div>
-      
-      <div class="interaction-bar">
-        <div class="left">
-          <n-button quaternary class="action-btn" @click="handleLike" :loading="liking">
-            <template #icon>
-              <n-icon :component="HeartOutline" />
-            </template>
-            {{ post.likeCount || 0 }}
-          </n-button>
-          <n-button quaternary class="action-btn" @click="toggleCommentForm">
-            <template #icon>
-              <n-icon :component="ChatbubbleOutline" />
-            </template>
-            {{ comments.length }}
-          </n-button>
-          <n-button quaternary class="action-btn">
-            <template #icon>
-              <n-icon :component="EyeOutline" />
-            </template>
-            {{ post.viewCount || 0 }}
-          </n-button>
-        </div>
-        <div class="right">
-          <share-button :title="post.title" />
-          <n-button quaternary circle>
-            <template #icon>
-              <n-icon :component="BookmarkOutline" />
-            </template>
-          </n-button>
-        </div>
-      </div>
-      
-      <div class="comments-section" id="comments">
-        <h3>评论 ({{ comments.length }})</h3>
-        
-        <div class="comment-form-container" v-if="isLoggedIn">
-          <div class="user-avatar-small">
-            <n-avatar 
-              round 
-              size="small" 
-              :src="userStore.userInfo?.avatar"
+        <h1 class="article-title serif">{{ post.title }}</h1>
+
+        <div class="article-meta">
+          <div class="author-info">
+            <n-avatar
+              round
+              size="medium"
+              :src="post.author?.avatar"
               :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
             />
+            <div class="author-details">
+              <div class="author-name">
+                {{ post.author?.nickname || post.author?.username || "匿名用户" }}
+              </div>
+              <div class="publish-info">
+                <span>{{ formatDate(post.createTime) }}</span>
+                <span class="dot">·</span>
+                <span>{{ Math.ceil(post.content.length / 500) }} 分钟阅读</span>
+              </div>
+            </div>
           </div>
-          <div class="form-wrapper">
-             <n-input
+
+          <div class="article-actions">
+            <share-button :title="post.title" />
+
+            <n-button quaternary circle>
+              <template #icon>
+                <n-icon :component="BookmarkOutline" />
+              </template>
+            </n-button>
+
+            <n-dropdown
+              v-if="isAdmin"
+              trigger="click"
+              :options="[
+                { label: '编辑', key: 'edit' },
+                { label: '删除', key: 'delete' },
+              ]"
+              @select="(key) => (key === 'edit' ? editPost() : deletePost())"
+            >
+              <n-button quaternary circle>
+                <template #icon>
+                  <n-icon :component="CreateOutline" />
+                </template>
+              </n-button>
+            </n-dropdown>
+          </div>
+        </div>
+
+        <n-divider />
+
+        <div class="markdown-body serif" v-html="renderedContent"></div>
+
+        <div class="article-tags">
+          <n-tag
+            v-if="post.category"
+            round
+            :bordered="false"
+            class="tag-pill"
+            @click="goToCategory(post.category.id)"
+          >
+            {{ post.category.name }}
+          </n-tag>
+
+          <n-tag
+            v-for="tag in post.tags"
+            :key="tag.id"
+            round
+            :bordered="false"
+            class="tag-pill"
+            @click="goToTag(tag.id)"
+          >
+            {{ tag.name }}
+          </n-tag>
+        </div>
+
+        <div class="interaction-bar">
+          <div class="left">
+            <n-button quaternary class="action-btn" @click="handleLike" :loading="liking">
+              <template #icon>
+                <n-icon :component="HeartOutline" />
+              </template>
+              {{ post.likeCount || 0 }}
+            </n-button>
+            <n-button quaternary class="action-btn" @click="toggleCommentForm">
+              <template #icon>
+                <n-icon :component="ChatbubbleOutline" />
+              </template>
+              {{ comments.length }}
+            </n-button>
+            <n-button quaternary class="action-btn">
+              <template #icon>
+                <n-icon :component="EyeOutline" />
+              </template>
+              {{ post.viewCount || 0 }}
+            </n-button>
+          </div>
+          <div class="right">
+            <share-button :title="post.title" />
+            <n-button quaternary circle>
+              <template #icon>
+                <n-icon :component="BookmarkOutline" />
+              </template>
+            </n-button>
+          </div>
+        </div>
+
+        <div class="comments-section" id="comments">
+          <h3>评论 ({{ comments.length }})</h3>
+
+          <div class="comment-form-container" v-if="isLoggedIn">
+            <div class="user-avatar-small">
+              <n-avatar
+                round
+                size="small"
+                :src="userStore.userInfo?.avatar"
+                :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+              />
+            </div>
+            <div class="form-wrapper">
+              <n-input
                 v-model:value="commentForm.content"
                 type="textarea"
                 :rows="3"
@@ -355,11 +362,11 @@ onMounted(() => {
                 class="comment-input"
               />
               <div class="form-actions">
-                <n-button 
-                  size="small" 
-                  type="primary" 
-                  round 
-                  color="#1a8917" 
+                <n-button
+                  size="small"
+                  type="primary"
+                  round
+                  color="#1a8917"
                   :disabled="!commentForm.content.trim()"
                   :loading="submittingComment"
                   @click="submitComment"
@@ -367,54 +374,58 @@ onMounted(() => {
                   发布
                 </n-button>
               </div>
+            </div>
           </div>
-        </div>
-        <div v-else class="login-prompt">
-          <n-button quaternary type="primary" @click="router.push('/login')">登录后发表评论</n-button>
-        </div>
-        
-        <div class="comment-list">
-          <div v-for="comment in comments" :key="comment.id" class="comment-item">
-            <div class="comment-header">
-              <div class="comment-author">
-                <n-avatar 
-                  round 
-                  size="small" 
-                  :src="comment.user?.avatar"
-                  :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
-                />
-                <div class="comment-meta">
-                  <span class="name">{{ comment.user?.nickname || comment.user?.username || '匿名用户' }}</span>
-                  <span class="time">{{ formatDate(comment.createTime) }}</span>
+          <div v-else class="login-prompt">
+            <n-button quaternary type="primary" @click="router.push('/login')"
+              >登录后发表评论</n-button
+            >
+          </div>
+
+          <div class="comment-list">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item">
+              <div class="comment-header">
+                <div class="comment-author">
+                  <n-avatar
+                    round
+                    size="small"
+                    :src="comment.user?.avatar"
+                    :fallback-src="'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'"
+                  />
+                  <div class="comment-meta">
+                    <span class="name">{{
+                      comment.user?.nickname || comment.user?.username || "匿名用户"
+                    }}</span>
+                    <span class="time">{{ formatDate(comment.createTime) }}</span>
+                  </div>
                 </div>
+
+                <n-dropdown
+                  v-if="isAdmin || (isLoggedIn && userStore.userInfo?.id === comment.user?.id)"
+                  trigger="click"
+                  :options="[{ label: '删除', key: 'delete' }]"
+                  @select="() => deleteComment(comment.id)"
+                >
+                  <n-button quaternary circle size="tiny">
+                    <template #icon>
+                      <n-icon :component="EllipsisHorizontal" />
+                    </template>
+                  </n-button>
+                </n-dropdown>
               </div>
-              
-              <n-dropdown 
-                v-if="isAdmin || (isLoggedIn && userStore.userInfo?.id === comment.user?.id)"
-                trigger="click" 
-                :options="[{ label: '删除', key: 'delete' }]" 
-                @select="() => deleteComment(comment.id)"
-              >
-                <n-button quaternary circle size="tiny">
-                  <template #icon>
-                    <n-icon :component="EllipsisHorizontal" />
-                  </template>
-                </n-button>
-              </n-dropdown>
-            </div>
-            
-            <div class="comment-body serif">
-              {{ comment.content }}
+
+              <div class="comment-body serif">
+                {{ comment.content }}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </article>
-    
-    <aside class="article-sidebar">
-      <table-of-contents />
-    </aside>
-  </div>
+      </article>
+
+      <aside class="article-sidebar">
+        <table-of-contents />
+      </aside>
+    </div>
   </div>
   <back-top />
 </template>
@@ -433,7 +444,8 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-.loading-container, .article-content {
+.loading-container,
+.article-content {
   flex: 1;
   max-width: 900px;
 }
@@ -600,7 +612,8 @@ onMounted(() => {
   margin-bottom: 40px;
 }
 
-.left, .right {
+.left,
+.right {
   display: flex;
   gap: 16px;
 }

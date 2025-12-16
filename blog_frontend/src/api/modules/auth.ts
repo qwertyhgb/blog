@@ -29,12 +29,7 @@ export const authApi = {
 
   // 用户注册接口
 
-  register: (data: {
-    username: string;
-    password: string;
-    nickname: string;
-    email: string;
-  }) => {
+  register: (data: { username: string; password: string; nickname: string; email: string }) => {
     return request<null>({
       url: "/auth/register",
 
